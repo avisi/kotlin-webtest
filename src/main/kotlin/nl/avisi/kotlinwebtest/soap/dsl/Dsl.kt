@@ -1,3 +1,7 @@
+/**
+ * For licensing, see LICENSE.txt
+ * @author Rein Krul
+ */
 package nl.avisi.kotlinwebtest.soap.dsl
 
 import nl.avisi.kotlinwebtest.KosoteTest

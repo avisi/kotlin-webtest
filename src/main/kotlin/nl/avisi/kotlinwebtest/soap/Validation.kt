@@ -1,3 +1,7 @@
+/**
+ * For licensing, see LICENSE.txt
+ * @author Rein Krul
+ */
 package nl.avisi.kotlinwebtest.soap
 
 import nl.avisi.kotlinwebtest.Endpoint
@@ -19,7 +23,6 @@ import org.xmlunit.diff.ComparisonResult
 import org.xmlunit.diff.ComparisonType
 import javax.activation.MimeType
 import javax.xml.xpath.XPathException
-
 
 class SoapFaultValidator(var mustContainSoapFault: Boolean) : Validator<SoapResponse> {
     override fun validate(executionContext: ExecutionContext, response: SoapResponse): ValidatorResult {

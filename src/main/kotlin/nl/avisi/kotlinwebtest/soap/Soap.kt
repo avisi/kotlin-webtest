@@ -1,5 +1,8 @@
+/**
+ * For licensing, see LICENSE.txt
+ * @author Rein Krul
+ */
 package nl.avisi.kotlinwebtest.soap
-
 
 import nl.avisi.kotlinwebtest.Endpoint
 import nl.avisi.kotlinwebtest.ExecutionContext

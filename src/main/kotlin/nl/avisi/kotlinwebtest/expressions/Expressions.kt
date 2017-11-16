@@ -1,8 +1,11 @@
+/**
+ * For licensing, see LICENSE.txt
+ * @author Rein Krul
+ */
 package nl.avisi.kotlinwebtest.expressions
 
 import nl.avisi.kotlinwebtest.ExecutionContext
 import java.util.regex.Pattern
-
 
 interface Expression
 
