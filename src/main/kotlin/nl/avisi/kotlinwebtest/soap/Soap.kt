@@ -24,6 +24,7 @@ import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
 import org.slf4j.LoggerFactory
 import org.w3c.dom.Document
+import org.xml.sax.SAXException
 import java.io.IOException
 import java.net.URL
 import java.nio.charset.StandardCharsets
@@ -79,6 +80,13 @@ class SoapExecutor : Executor<SoapTestStep> {
                 .let { interpolateExpressions(it, executionContext) }
         val configuration = executionContext.configuration[SoapTestConfiguration::class]
 
+        fun buildError(response: ReceivedHttpResponse?, exception: Throwable): SoapResponse =
+                SoapResponse(response, false, "SOAP request failed: ${exception.message}").also {
+                    with(executionContext) {
+                        previousRequest = request
+                    }
+                }
+
         log.info("Sending request: {}", requestData)
         var httpResponse: ReceivedHttpResponse? = null
         try {
@@ -98,14 +106,16 @@ class SoapExecutor : Executor<SoapTestStep> {
                 }
             }
         } catch (e: IOException) {
-            log.error("SOAP request failed:", e)
-            return SoapResponse(httpResponse, false, "SOAP request failed: ${e.message}").also {
-                with(executionContext) {
-                    previousRequest = request
-                }
-            }
+            log.error("SOAP request failed.", e)
+            return buildError(httpResponse, e)
         }
-        log.info("Response: ${httpResponse?.data?.asPrettyXml()}")
+        try {
+            log.info("Response: ${httpResponse?.data?.asPrettyXml()}")
+        } catch (e: SAXException) {
+            log.error("Invalid SOAP response: ${httpResponse?.data}", e)
+            return buildError(httpResponse, e)
+        }
+
         return SoapResponse(httpResponse, true).also {
             with(executionContext) {
                 previousRequest = request
