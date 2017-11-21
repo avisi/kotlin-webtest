@@ -62,11 +62,11 @@ abstract class KosoteTest {
         return testCase
     }
 
-    private fun <StepType : TestStep<out Request, in Response>> executeStep(step: StepType, context: ExecutionContext): StepResult {
+    private fun <StepType : TestStep<Request, in Response>> executeStep(step: StepType, context: ExecutionContext): StepResult {
         val executor = executors[step.javaClass] ?: error("No executor found for step type: ${step.javaClass.simpleName}")
         val response = (executor as Executor<StepType>).execute(step, context)
         return if (response.success) {
-            val validationResults = step.validators.map { it.validate(context, response) }
+            val validationResults = step.validators.map { it.validate(context, step.request, response) }
             StepResult(step, validationResults, true)
         } else {
             StepResult(step, listOf(), false)

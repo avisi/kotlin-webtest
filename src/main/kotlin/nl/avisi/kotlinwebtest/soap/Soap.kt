@@ -48,6 +48,7 @@ class SoapRequest(var body: SoapRequestBody? = null) : Request, HttpRequest() {
 }
 
 class SoapResponse(override val http: ReceivedHttpResponse?,
+                   val endpoint: Endpoint,
                    override val success: Boolean,
                    override val message: String? = null) : HttpResponse {
 
@@ -71,17 +72,18 @@ class FileSoapRequestBody(private val file: String) : SoapRequestBody {
 
 class RawSoapRequestBody(override val data: String) : SoapRequestBody
 
-
 class SoapExecutor : Executor<SoapTestStep> {
 
     override fun execute(step: SoapTestStep, executionContext: ExecutionContext): Response {
+        // TODO: using error() not very nice (throws a technical error), should be handled in a functional way instead.
         val request = step.request
         val requestData = (request.body?.data ?: error("No body configured for SOAP test step."))
                 .let { interpolateExpressions(it, executionContext) }
         val configuration = executionContext.configuration[SoapTestConfiguration::class]
+        val endpoint = step.resolveEndpoint(configuration) ?: error("No endpoint configured for SOAP test step.")
 
         fun buildError(response: ReceivedHttpResponse?, exception: Throwable): SoapResponse =
-                SoapResponse(response, false, "SOAP request failed: ${exception.message}").also {
+                SoapResponse(response, endpoint, false, "SOAP request failed: ${exception.message}").also {
                     with(executionContext) {
                         previousRequest = request
                     }
@@ -91,7 +93,7 @@ class SoapExecutor : Executor<SoapTestStep> {
         var httpResponse: ReceivedHttpResponse? = null
         try {
             getHttpClient().use {
-                val httpRequest = HttpPost(step.resolveUrl(configuration))
+                val httpRequest = HttpPost(step.resolveUrl(endpoint))
                 configuration.defaults.headers.forEach { (name, value) -> httpRequest.setHeader(name, value) }
                 request.headers.forEach { (name, value) -> httpRequest.setHeader(name, value) }
                 httpRequest.entity = StringEntity(requestData, ContentType.TEXT_XML.withCharset(StandardCharsets.UTF_8))
@@ -116,7 +118,7 @@ class SoapExecutor : Executor<SoapTestStep> {
             return buildError(httpResponse, e)
         }
 
-        return SoapResponse(httpResponse, true).also {
+        return SoapResponse(httpResponse, endpoint, true).also {
             with(executionContext) {
                 previousRequest = request
                 previousResponse = it

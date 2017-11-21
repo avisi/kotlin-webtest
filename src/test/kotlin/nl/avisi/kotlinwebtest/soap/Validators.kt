@@ -4,10 +4,14 @@
  */
 package nl.avisi.kotlinwebtest.soap
 
+import nl.avisi.kotlinwebtest.Endpoint
 import nl.avisi.kotlinwebtest.http.ReceivedHttpResponse
 
+fun request() =
+        SoapRequest(RawSoapRequestBody(emptySoapEnvelope))
+
 fun response(xml: String) =
-        SoapResponse(ReceivedHttpResponse(200, xml, listOf()), true)
+        SoapResponse(ReceivedHttpResponse(200, xml, listOf()), Endpoint(null, "http://localhost"), true)
 
 val emptySoapEnvelope = """
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">

@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="webtest::vehicles::cars" xmlns="webtest::vehicles::cars"
+           xmlns:parts="webtest::vehicles::parts"
+           elementFormDefault="qualified" attributeFormDefault="qualified">
+    <xs:import namespace="webtest::vehicles::parts" schemaLocation="parts.xsd"/>
+    <xs:element name="car">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="wheel" type="parts:wheel"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

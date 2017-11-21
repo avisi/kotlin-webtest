@@ -18,12 +18,12 @@ interface Response : Result
 // TestCase
 @KosoteDsl
 abstract class TestStep<RequestType : Request, ResponseType : Response>(override val testCase: TestCase, val request: RequestType) : TestCaseBuilder {
-    val validators: MutableList<Validator<ResponseType>> = mutableListOf()
+    val validators: MutableList<Validator<RequestType, ResponseType>> = mutableListOf()
         get() = field
     val afterwards: MutableList<(context: ExecutionContext) -> Unit> = mutableListOf()
     var name: String? = null
 
-    fun register(validator: Validator<ResponseType>) {
+    fun register(validator: Validator<RequestType, ResponseType>) {
         validators.add(validator)
     }
 
@@ -75,13 +75,16 @@ interface Executor<in StepType : TestStep<*, *>> {
     fun execute(step: StepType, executionContext: ExecutionContext): Response
 }
 
-class TestConfiguration(val xml: XmlContext = XmlContext()) {
+class TestConfiguration(val xml: XmlContext = XmlContext()) : Extendable()
 
-    val extensions: MutableList<Any> = mutableListOf()
+abstract class Extendable {
+    val extensions: MutableMap<KClass<*>, Any> = mutableMapOf()
 
-    inline operator fun <reified T : Any> get(type: KClass<T>): T {
-        return extensions.firstOrNull { type.isInstance(it) } as T? ?: T::class.java.newInstance().also { extensions.add(it) }
-    }
+    inline operator fun <reified T : Any> get(type: KClass<T>): T =
+            extensions.getOrPut(type, { T::class.java.newInstance() }) as T
+
+    inline operator fun <reified T : Any> set(type: KClass<T>, value: T) =
+            extensions.put(type, value)
 }
 
 class ExecutionContext(val configuration: TestConfiguration,
@@ -90,7 +93,7 @@ class ExecutionContext(val configuration: TestConfiguration,
                        var previousResponse: Response? = null)
 
 
-class Endpoint(val name: String, url_: String, private val configurer: (Endpoint.() -> Unit)? = null) {
+class Endpoint(val name: String?, url_: String) : Extendable() {
 
     val url = URL(url_)
 }

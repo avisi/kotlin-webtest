@@ -8,6 +8,7 @@ import nl.avisi.kotlinwebtest.KosoteTest
 import nl.avisi.kotlinwebtest.StepBuilder
 import nl.avisi.kotlinwebtest.TestConfiguration
 import nl.avisi.kotlinwebtest.http.HttpStatusValidationBuilder
+import nl.avisi.kotlinwebtest.rest.RestRequest
 import nl.avisi.kotlinwebtest.rest.RestRequestDefaults
 import nl.avisi.kotlinwebtest.rest.RestResponse
 import nl.avisi.kotlinwebtest.rest.RestTestConfiguration
@@ -27,7 +28,7 @@ infix fun RestTestStep.validate(init: Validation.() -> Unit) {
 }
 
 class Validation(private val step: RestTestStep) {
-    fun http_status(): HttpStatusValidationBuilder<RestResponse> = HttpStatusValidationBuilder(step)
+    fun http_status(): HttpStatusValidationBuilder<RestRequest, RestResponse> = HttpStatusValidationBuilder(step)
 }
 
 fun KosoteTest.rest(init: RestSettingsBuilder.() -> Unit) {

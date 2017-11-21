@@ -5,10 +5,11 @@
 package nl.avisi.kotlinwebtest.http
 
 import nl.avisi.kotlinwebtest.Endpoint
+import nl.avisi.kotlinwebtest.Request
 import nl.avisi.kotlinwebtest.Response
 
 
-abstract class HttpRequest {
+abstract class HttpRequest : Request {
     var method: HttpMethod = HttpMethod.GET
     var path: String = "/"
     var headers: MutableList<HttpHeader> = mutableListOf()

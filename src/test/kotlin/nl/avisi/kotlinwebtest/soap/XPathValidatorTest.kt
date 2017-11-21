@@ -27,7 +27,7 @@ class XPathValidatorTest {
         val expected = "<foo><bar>Hello</bar></foo>"
 
         val validator = XPathValidator("//foo", ConstantExpression(expected))
-        val result = validator.validate(context, response(input))
+        val result = validator.validate(context, request(), response(input))
         assertTrue(result.message) { result.success }
     }
 
@@ -45,7 +45,7 @@ class XPathValidatorTest {
         val expected = """<foo xmlns="b"><bar xmlns="c">Hello</bar></foo>"""
 
         val validator = XPathValidator("//input_b:foo", ConstantExpression(expected))
-        val result = validator.validate(context, response(input))
+        val result = validator.validate(context, request(), response(input))
         assertTrue(result.message) { result.success }
     }
 
@@ -62,7 +62,7 @@ class XPathValidatorTest {
         val expected = """<c>Hello</c>"""
 
         val validator = XPathValidator("//foo", ConstantExpression(expected))
-        val result = validator.validate(context, response(input))
+        val result = validator.validate(context, request(), response(input))
         assertFalse(result.message) { result.success }
     }
 
@@ -79,7 +79,7 @@ class XPathValidatorTest {
         val expected = """<c>Hello</c>"""
 
         val validator = XPathValidator("//foo:foo", ConstantExpression(expected))
-        val result = validator.validate(context, response(input))
+        val result = validator.validate(context, request(), response(input))
         assertFalse(result.message) { result.success }
     }
 }

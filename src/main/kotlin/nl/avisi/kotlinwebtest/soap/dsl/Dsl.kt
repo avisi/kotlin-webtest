@@ -4,13 +4,18 @@
  */
 package nl.avisi.kotlinwebtest.soap.dsl
 
+import nl.avisi.kotlinwebtest.Endpoint
+import nl.avisi.kotlinwebtest.EndpointConfigurer
 import nl.avisi.kotlinwebtest.KosoteTest
 import nl.avisi.kotlinwebtest.StepBuilder
 import nl.avisi.kotlinwebtest.TestConfiguration
 import nl.avisi.kotlinwebtest.expressions.ConstantExpression
 import nl.avisi.kotlinwebtest.expressions.Expression
 import nl.avisi.kotlinwebtest.http.HttpStatusValidationBuilder
+import nl.avisi.kotlinwebtest.soap.Schema
+import nl.avisi.kotlinwebtest.soap.Schemas
 import nl.avisi.kotlinwebtest.soap.SoapFaultValidator
+import nl.avisi.kotlinwebtest.soap.SoapRequest
 import nl.avisi.kotlinwebtest.soap.SoapRequestDefaults
 import nl.avisi.kotlinwebtest.soap.SoapResponse
 import nl.avisi.kotlinwebtest.soap.SoapResponseValidator
@@ -37,7 +42,7 @@ infix fun StepBuilder.soap(init: SoapTestStep.() -> Unit): SoapTestStep {
 
 class Validation(private val step: SoapTestStep) {
     fun xpath(xpath: String): XPathValidationBuilder = XPathValidationBuilder(step, xpath)
-    fun http_status(): HttpStatusValidationBuilder<SoapResponse> = HttpStatusValidationBuilder(step)
+    fun http_status(): HttpStatusValidationBuilder<SoapRequest, SoapResponse> = HttpStatusValidationBuilder(step)
     fun xsd() = step.validators.add(XSDValidator())
     fun soap_fault() = SoapFaultValidationBuilder(step)
     fun is_soap_response() = step.validators.add(SoapResponseValidator())
@@ -73,3 +78,15 @@ class SoapSettingsBuilder(val configuration: TestConfiguration) {
 
     inner class DefaultSettingsBuilder(val request: SoapRequestDefaults)
 }
+
+class SoapEndpointSettingsConfigurer(private val endpoint: Endpoint) {
+    infix fun validation_schema(file: String) {
+        // TODO: This enables immutability of the 'Schemas' class, but it sure looks a bit funny...
+        val url = Thread.currentThread().contextClassLoader.getResource(file) ?: error("Schema not found: $file")
+        endpoint[Schemas::class] = Schemas(endpoint[Schemas::class].plus(Schema(url)))
+    }
+}
+
+val EndpointConfigurer.soap: SoapEndpointSettingsConfigurer
+    get() = SoapEndpointSettingsConfigurer(this.endpoint)
+

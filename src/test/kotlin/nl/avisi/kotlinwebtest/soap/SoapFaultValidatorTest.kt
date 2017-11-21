@@ -14,24 +14,24 @@ class SoapFaultValidatorTest {
     @Test
     fun validateSoapFaultExpectedAndFound() {
         val validator = SoapFaultValidator(true)
-        assertTrue(validator.validate(ExecutionContext(TestConfiguration()), response(soapClientFault)).success)
+        assertTrue(validator.validate(ExecutionContext(TestConfiguration()), request(), response(soapClientFault)).success)
     }
 
     @Test
     fun validateSoapFaultExpectedButNotFound() {
         val validator = SoapFaultValidator(true)
-        assertFalse(validator.validate(ExecutionContext(TestConfiguration()), response(emptySoapEnvelope)).success)
+        assertFalse(validator.validate(ExecutionContext(TestConfiguration()), request(), response(emptySoapEnvelope)).success)
     }
 
     @Test
     fun validateNoSoapFaultAndNotFound() {
         val validator = SoapFaultValidator(false)
-        assertTrue(validator.validate(ExecutionContext(TestConfiguration()), response(emptySoapEnvelope)).success)
+        assertTrue(validator.validate(ExecutionContext(TestConfiguration()), request(), response(emptySoapEnvelope)).success)
     }
 
     @Test
     fun validateNoSoapFaultButFound() {
         val validator = SoapFaultValidator(false)
-        assertFalse(validator.validate(ExecutionContext(TestConfiguration()), response(soapClientFault)).success)
+        assertFalse(validator.validate(ExecutionContext(TestConfiguration()), request(), response(soapClientFault)).success)
     }
 }
