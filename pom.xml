@@ -85,7 +85,6 @@
                         </goals>
                         <configuration>
                             <sourceDirs>
-                                <sourceDir>${project.basedir}/target/generated/cxf</sourceDir>
                                 <sourceDir>${project.build.sourceDirectory}</sourceDir>
                             </sourceDirs>
                         </configuration>
