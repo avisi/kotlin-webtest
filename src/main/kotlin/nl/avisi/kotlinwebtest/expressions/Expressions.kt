@@ -58,7 +58,7 @@ class ExpressionEvaluator(private val executionContext: ExecutionContext) {
     fun evaluate(expression: Expression): String? =
             when (expression) {
                 is ConstantExpression -> expression.value
-                is PropertyExpression -> executionContext.properties[expression.name]
+                is PropertyExpression -> executionContext.properties[expression.name] ?: executionContext.configuration.properties[expression.name]
                 else -> error("Unable to evaluate expression: $expression")
             }
 }

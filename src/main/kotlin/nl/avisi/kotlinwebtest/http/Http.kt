@@ -24,9 +24,8 @@ abstract class HttpRequest : Request {
         this.method = method
     }
 
-    infix fun header(header: String): RequestHeaderBuilder {
-        return RequestHeaderBuilder(header, this)
-    }
+    infix fun header(header: String): RequestHeaderBuilder =
+            RequestHeaderBuilder(header, this)
 
     inner class RequestHeaderBuilder(private val header: String, private val request: HttpRequest) {
         infix fun value(value: String) {

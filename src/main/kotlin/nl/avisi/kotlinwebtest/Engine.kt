@@ -75,7 +75,7 @@ interface Executor<in StepType : TestStep<*, *>> {
     fun execute(step: StepType, executionContext: ExecutionContext): Response
 }
 
-class TestConfiguration(val xml: XmlContext = XmlContext()) : Extendable()
+class TestConfiguration(val xml: XmlContext = XmlContext(), val properties: PropertyBag = PropertyBag()) : Extendable()
 
 abstract class Extendable {
     val extensions: MutableMap<KClass<*>, Any> = mutableMapOf()

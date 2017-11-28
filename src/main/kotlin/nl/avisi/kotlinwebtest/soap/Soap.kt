@@ -52,10 +52,9 @@ class SoapResponse(override val http: ReceivedHttpResponse?,
                    override val success: Boolean,
                    override val message: String? = null) : HttpResponse {
 
-    val document: Document by lazy {
-        if (http == null) error("Missing HTTP response.")
-        toDocument(http.data)
-    }
+    val document: Document
+        get() =
+            http?.let { toDocument(it.data) } ?: error("Missing HTTP response.")
 }
 
 interface SoapRequestBody {
