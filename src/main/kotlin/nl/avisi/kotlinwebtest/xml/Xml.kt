@@ -6,6 +6,7 @@ package nl.avisi.kotlinwebtest.xml
 
 import org.w3c.dom.Document
 import org.w3c.dom.Node
+import java.io.InputStream
 import java.io.StringWriter
 import javax.xml.XMLConstants
 import javax.xml.namespace.NamespaceContext
@@ -66,19 +67,25 @@ fun toXml(node: Node): String {
     val transformerFactory = TransformerFactory.newInstance()
     val transformer = transformerFactory.newTransformer()
     transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes")
-    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+    transformer.setOutputProperty(OutputKeys.INDENT, "yes")
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2")
     val writer = StringWriter()
     transformer.transform(DOMSource(node), StreamResult(writer))
     return writer.toString()
 }
 
-fun toDocument(xml: String): Document =
+fun Document.toXml(): String =
+        toXml(this)
+
+fun toDocument(xml: InputStream): Document =
         DocumentBuilderFactory
                 .newInstance()
                 .apply { isNamespaceAware = true }
                 .newDocumentBuilder()
-                .parse(xml.byteInputStream())
+                .parse(xml)
+
+fun toDocument(xml: String): Document =
+        toDocument(xml.byteInputStream())
 
 fun String.asPrettyXml(): String =
         toXml(toDocument(this))

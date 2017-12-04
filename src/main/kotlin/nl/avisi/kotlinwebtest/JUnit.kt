@@ -44,7 +44,7 @@ abstract class KosoteTest {
         val testResults = project.testCases.map({ test ->
             log.info("Running ${test.name}")
             // TODO: Fix this unchecked cast
-            test.steps.map { executeStep(it as (TestStep<Request, Response>), executionContext) }
+            test.steps.map { executeStep(it as (TestStep<StepRequest, StepResponse>), executionContext) }
                     .let { TestResult(test, it) }
         }).let(::Results)
         StringWriter().also {
@@ -62,7 +62,7 @@ abstract class KosoteTest {
         return testCase
     }
 
-    private fun <StepType : TestStep<Request, in Response>> executeStep(step: StepType, context: ExecutionContext): StepResult {
+    private fun <StepType : TestStep<StepRequest, in StepResponse>> executeStep(step: StepType, context: ExecutionContext): StepResult {
         val executor = executors[step.javaClass] ?: error("No executor found for step type: ${step.javaClass.simpleName}")
         val response = (executor as Executor<StepType>).execute(step, context)
         return if (response.success) {

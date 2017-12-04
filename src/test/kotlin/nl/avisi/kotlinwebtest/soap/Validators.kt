@@ -5,13 +5,13 @@
 package nl.avisi.kotlinwebtest.soap
 
 import nl.avisi.kotlinwebtest.Endpoint
-import nl.avisi.kotlinwebtest.http.ReceivedHttpResponse
+import nl.avisi.kotlinwebtest.http.HttpResponse
 
 fun request() =
         SoapRequest(RawSoapRequestBody(emptySoapEnvelope))
 
 fun response(xml: String) =
-        SoapResponse(ReceivedHttpResponse(200, xml, listOf()), Endpoint(null, "http://localhost"), true)
+        SoapStepResponse(HttpResponse(200, xml.toByteArray(), listOf()), Endpoint(null, "http://localhost"), true)
 
 val emptySoapEnvelope = """
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">

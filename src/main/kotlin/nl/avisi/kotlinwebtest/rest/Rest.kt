@@ -4,19 +4,13 @@
  */
 package nl.avisi.kotlinwebtest.rest
 
-import nl.avisi.kotlinwebtest.Endpoint
-import nl.avisi.kotlinwebtest.ExecutionContext
-import nl.avisi.kotlinwebtest.Executor
-import nl.avisi.kotlinwebtest.Request
-import nl.avisi.kotlinwebtest.Response
-import nl.avisi.kotlinwebtest.TestCase
-import nl.avisi.kotlinwebtest.TestStep
+import nl.avisi.kotlinwebtest.*
 import nl.avisi.kotlinwebtest.expressions.ExpressionEvaluator
 import nl.avisi.kotlinwebtest.expressions.findExpressions
 import nl.avisi.kotlinwebtest.http.HttpHeader
 import nl.avisi.kotlinwebtest.http.HttpRequest
 import nl.avisi.kotlinwebtest.http.HttpResponse
-import nl.avisi.kotlinwebtest.http.ReceivedHttpResponse
+import nl.avisi.kotlinwebtest.http.HttpStepResponse
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.StringEntity
@@ -25,7 +19,7 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 
-class RestRequest(var body: String? = null) : Request, HttpRequest() {
+class RestRequest(var body: String? = null) : StepRequest, HttpRequest() {
 
     lateinit var testStep: RestTestStep
 
@@ -38,12 +32,12 @@ class RestRequest(var body: String? = null) : Request, HttpRequest() {
     }
 }
 
-class RestResponse(override val http: ReceivedHttpResponse?,
-                   override val success: Boolean,
-                   override val message: String? = null) : HttpResponse {
+class RestStepResponse(override val http: HttpResponse?,
+                       override val success: Boolean,
+                       override val message: String? = null) : HttpStepResponse {
 }
 
-class RestTestStep(testCase: TestCase) : TestStep<RestRequest, RestResponse>(testCase, RestRequest()) {
+class RestTestStep(testCase: TestCase) : TestStep<RestRequest, RestStepResponse>(testCase, RestRequest()) {
     var endpoint: Endpoint? = null
 
     init {
@@ -58,13 +52,13 @@ class RestTestStep(testCase: TestCase) : TestStep<RestRequest, RestResponse>(tes
 
 class RestExecutor : Executor<RestTestStep> {
 
-    override fun execute(step: RestTestStep, executionContext: ExecutionContext): Response {
+    override fun execute(step: RestTestStep, executionContext: ExecutionContext): StepResponse {
         val request = step.request
         val requestData = (request.body ?: error("No body configured for REST test step."))
                 .let { interpolateExpressions(it, executionContext) }
         val configuration = executionContext.configuration[RestTestConfiguration::class]
 
-        var httpResponse: ReceivedHttpResponse? = null
+        var httpResponse: HttpResponse? = null
         try {
             getHttpClient().use {
                 val httpRequest = HttpPost(step.resolveUrl(configuration))
@@ -75,23 +69,23 @@ class RestExecutor : Executor<RestTestStep> {
                 val response = it.execute(httpRequest)
                 response.use {
                     response.entity.content.use {
-                        httpResponse = ReceivedHttpResponse(
+                        httpResponse = HttpResponse(
                                 statusCode = response.statusLine.statusCode,
-                                data = it.reader().readText(),
+                                data = it.readBytes(),
                                 headers = response.allHeaders.map { HttpHeader(it.name, it.value) })
                     }
                 }
             }
         } catch (e: IOException) {
             log.error("REST request failed:", e)
-            return RestResponse(httpResponse, false, "REST request failed: ${e.message}").also {
+            return RestStepResponse(httpResponse, false, "REST request failed: ${e.message}").also {
                 with(executionContext) {
                     previousRequest = request
                 }
             }
         }
         log.info("Response: ${httpResponse?.data}")
-        return RestResponse(httpResponse, true).also {
+        return RestStepResponse(httpResponse, true).also {
             with(executionContext) {
                 previousRequest = request
                 previousResponse = it

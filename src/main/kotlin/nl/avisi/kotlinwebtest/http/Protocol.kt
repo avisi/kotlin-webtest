@@ -18,6 +18,11 @@ enum class HttpMethod {
 class HttpHeader(val name: String, val value: String) {
     operator fun component1(): String? = name
     operator fun component2(): String? = value
+
+    override fun toString(): String =
+            "$name: $value"
+
+
 }
 
 enum class HttpHeaders(val headerName: String) {

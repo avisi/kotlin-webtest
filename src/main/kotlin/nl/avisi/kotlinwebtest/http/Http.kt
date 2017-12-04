@@ -5,11 +5,11 @@
 package nl.avisi.kotlinwebtest.http
 
 import nl.avisi.kotlinwebtest.Endpoint
-import nl.avisi.kotlinwebtest.Request
-import nl.avisi.kotlinwebtest.Response
+import nl.avisi.kotlinwebtest.StepRequest
+import nl.avisi.kotlinwebtest.StepResponse
 
 
-abstract class HttpRequest : Request {
+abstract class HttpRequest : StepRequest {
     var method: HttpMethod = HttpMethod.GET
     var path: String = "/"
     var headers: MutableList<HttpHeader> = mutableListOf()
@@ -34,13 +34,20 @@ abstract class HttpRequest : Request {
     }
 }
 
-interface HttpResponse : Response {
-    val http: ReceivedHttpResponse?
+interface HttpStepResponse : StepResponse {
+    val http: HttpResponse?
 }
 
-class ReceivedHttpResponse(val statusCode: Int,
-                           val data: String,
-                           val headers: List<HttpHeader>) {
+open class HttpResponse(val statusCode: Int, data: ByteArray, headers: List<HttpHeader>) : HttpResponsePart(data, headers) {
     val contentType: String?
         get() = headers.firstOrNull { it.name.equals(HttpHeaders.CONTENT_TYPE.headerName, true) }?.value
 }
+
+open class HttpResponsePart(val data: ByteArray,
+                            val headers: List<HttpHeader>) {
+    val dataAsString: String
+        get() =
+            data.toString(Charsets.UTF_8)
+}
+
+class MultipartHttpResponse(statusCode: Int, mimeBodyPart: ByteArray, headers: List<HttpHeader>, val parts: List<HttpResponsePart>) : HttpResponse(statusCode, mimeBodyPart, headers)

@@ -4,8 +4,8 @@
  */
 package nl.avisi.kotlinwebtest.properties
 
-import nl.avisi.kotlinwebtest.Request
-import nl.avisi.kotlinwebtest.Response
+import nl.avisi.kotlinwebtest.StepRequest
+import nl.avisi.kotlinwebtest.StepResponse
 import nl.avisi.kotlinwebtest.TestCase
 import nl.avisi.kotlinwebtest.TestStep
 import nl.avisi.kotlinwebtest.expressions.Expression
@@ -22,7 +22,7 @@ class PropertyBag {
     }
 }
 
-class PropertyRequest(val name: String) : Request {
+class PropertyRequest(val name: String) : StepRequest {
     lateinit var expression: Expression
 
     constructor(name: String, expression: Expression) : this(name) {
@@ -30,14 +30,14 @@ class PropertyRequest(val name: String) : Request {
     }
 }
 
-class PropertyResponse : Response {
+class PropertyResponse : StepResponse {
     override val success: Boolean
         get() = true
     override val message: String?
         get() = null
 }
 
-class PropertyTestStep(testCase: TestCase) : TestStep<PropertyRequest, Response>(testCase, PropertyRequest(""))
+class PropertyTestStep(testCase: TestCase) : TestStep<PropertyRequest, StepResponse>(testCase, PropertyRequest(""))
 
 class PropertyBuilder(val request: PropertyRequest) {
 

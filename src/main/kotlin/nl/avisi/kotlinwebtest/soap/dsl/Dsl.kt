@@ -17,7 +17,7 @@ import nl.avisi.kotlinwebtest.soap.Schemas
 import nl.avisi.kotlinwebtest.soap.SoapFaultValidator
 import nl.avisi.kotlinwebtest.soap.SoapRequest
 import nl.avisi.kotlinwebtest.soap.SoapRequestDefaults
-import nl.avisi.kotlinwebtest.soap.SoapResponse
+import nl.avisi.kotlinwebtest.soap.SoapStepResponse
 import nl.avisi.kotlinwebtest.soap.SoapResponseValidator
 import nl.avisi.kotlinwebtest.soap.SoapTestConfiguration
 import nl.avisi.kotlinwebtest.soap.SoapTestStep
@@ -42,7 +42,7 @@ infix fun StepBuilder.soap(init: SoapTestStep.() -> Unit): SoapTestStep {
 
 class Validation(private val step: SoapTestStep) {
     fun xpath(xpath: String): XPathValidationBuilder = XPathValidationBuilder(step, xpath)
-    fun http_status(): HttpStatusValidationBuilder<SoapRequest, SoapResponse> = HttpStatusValidationBuilder(step)
+    fun http_status(): HttpStatusValidationBuilder<SoapRequest, SoapStepResponse> = HttpStatusValidationBuilder(step)
     fun xsd() = step.validators.add(XSDValidator())
     fun soap_fault() = SoapFaultValidationBuilder(step)
     fun is_soap_response() = step.validators.add(SoapResponseValidator())

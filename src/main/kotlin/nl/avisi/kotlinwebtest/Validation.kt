@@ -4,7 +4,7 @@
  */
 package nl.avisi.kotlinwebtest
 
-interface Validator<in RequestType : Request, in ResponseType : Response> {
+interface Validator<in RequestType : StepRequest, in ResponseType : StepResponse> {
     fun validate(executionContext: ExecutionContext, request: RequestType, response: ResponseType): ValidatorResult
 
     fun success(): SuccessValidatorResult =
@@ -28,7 +28,7 @@ class FailedValidatorResult(override val validator: Validator<*, *>,
     override val success: Boolean = false
 }
 
-class ValidatorConfigurer<out RequestType : Request, out ResponseType : Response>(private val builder: TestStep<RequestType, ResponseType>) {
+class ValidatorConfigurer<out RequestType : StepRequest, out ResponseType : StepResponse>(private val builder: TestStep<RequestType, ResponseType>) {
 
     fun register(validator: Validator<RequestType, ResponseType>) {
         builder.register(validator)

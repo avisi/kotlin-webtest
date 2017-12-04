@@ -10,14 +10,14 @@ import java.net.URL
 import kotlin.reflect.KClass
 
 // Requests
-interface Request
+interface StepRequest
 
-interface Response : Result
+interface StepResponse : Result
 
 
 // TestCase
 @KosoteDsl
-abstract class TestStep<RequestType : Request, ResponseType : Response>(override val testCase: TestCase, val request: RequestType) : TestCaseBuilder {
+abstract class TestStep<RequestType : StepRequest, ResponseType : StepResponse>(override val testCase: TestCase, val request: RequestType) : TestCaseBuilder {
     val validators: MutableList<Validator<RequestType, ResponseType>> = mutableListOf()
         get() = field
     val afterwards: MutableList<(context: ExecutionContext) -> Unit> = mutableListOf()
@@ -72,7 +72,7 @@ interface TestCaseBuilder {
 
 // Execution
 interface Executor<in StepType : TestStep<*, *>> {
-    fun execute(step: StepType, executionContext: ExecutionContext): Response
+    fun execute(step: StepType, executionContext: ExecutionContext): StepResponse
 }
 
 class TestConfiguration(val xml: XmlContext = XmlContext(), val properties: PropertyBag = PropertyBag()) : Extendable()
@@ -89,11 +89,11 @@ abstract class Extendable {
 
 class ExecutionContext(val configuration: TestConfiguration,
                        val properties: PropertyBag = PropertyBag(),
-                       var previousRequest: Request? = null,
-                       var previousResponse: Response? = null)
+                       var previousRequest: StepRequest? = null,
+                       var previousResponse: StepResponse? = null)
 
 
-class Endpoint(val name: String?, url_: String) : Extendable() {
+class Endpoint(val name: String?, url: String) : Extendable() {
 
-    val url = URL(url_)
+    val url = URL(url)
 }
