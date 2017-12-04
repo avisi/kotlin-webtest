@@ -4,19 +4,25 @@ I might even fix some bugs if you ask nicely (be sure to supply logs, steps to r
 
 # Features #
 
-## SOAP ##
-This implementation is not intended to be a feature-complete but one which is just enough to test your typical spec-compliant SOAP-service, but nothing more.
-This means it fail detect an in theory malformed SOAP-response (parsable, but strictly not correct).
+## SOAP 1.1 & 1.2 ##
+This implementation is not intended to be feature-complete but one which is just enough to test a spec-compliant SOAP-service, but nothing more.
+This means it might fail to detect an in theory malformed/invalid SOAP-response which parses OK.
+
+Validators: HTTP responses, SOAP faults, XPath, XSD
 
 ## REST ##
 
-## JDBC ##
+Validators: HTTP responses
 
 # TODO #
 The following stuff (and much more) needs to be done:
-- Getting the default namespace in XPath validators to work
-- Parsing WSDLs
 - Sending MTOM (receiving works)
 - SwA support (only MTOM/XOP is supported right now)
 - General cleanup
 - Improve logging (human-friendly v.s. technical log?)
+- More test coverage. This stuff slowly becomes something a poor soul actually would be using, so some additional unit tests would be nice.
+- Everything where your find // TODO in the code
+- Push to Maven Central (when all of the above has been fixed)
+- Getting the default namespace in XPath validators to work
+- JDBC support
+- Parsing WSDLs
