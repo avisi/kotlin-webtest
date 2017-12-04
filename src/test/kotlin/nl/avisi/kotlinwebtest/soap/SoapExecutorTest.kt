@@ -1,3 +1,7 @@
+/**
+ * For licensing, see LICENSE.txt
+ * @author Rein Krul
+ */
 package nl.avisi.kotlinwebtest.soap
 
 import nl.avisi.kotlinwebtest.Endpoint
@@ -32,39 +36,28 @@ const val MIMETYPE_SOAPXML = "application/soap+xml"
 
 class SoapExecutorTest {
 
-    private val log = LoggerFactory.getLogger(SoapExecutor::class.java)
-    private val simpleResponseText: String = readResponse("soap/simple-soap-response.xml")
-    private val port = 7543
-    private lateinit var server: HttpServer
+    private lateinit var server: SoapServer
 
     @Before
     fun setUp() {
-        server = ServerBootstrap.bootstrap()
-                .setListenerPort(port)
-                .setExceptionLogger { log.error("An error occurred", it) }
-                .registerHandler("/simple/*", SimpleHandler(simpleResponseText))
-                .registerHandler("/mtom/*", MtomHandler(simpleResponseText))
-                .create()
-                .apply {
-                    start()
-                }
+        server = SoapServer()
     }
 
     @After
     fun tearDown() {
-        server.stop()
+        server.close()
     }
 
     @Test
     fun execute() {
         val step = SoapTestStep(TestCase("Multipart")).apply {
-            endpoint = Endpoint("Endpoint", "http://localhost:$port/simple")
+            endpoint = Endpoint("Endpoint", "http://localhost:${server.port}/simple")
             request.text("foobar")
         }
         val response = SoapExecutor().execute(step, ExecutionContext(TestConfiguration())) as SoapStepResponse
         assertTrue { response.success }
         assertFalse {
-            DiffBuilder.compare(simpleResponseText)
+            DiffBuilder.compare(server.simpleResponseText)
                     .withTest(response.document.toXml())
                     .ignoreComments()
                     .ignoreWhitespace()
@@ -77,14 +70,14 @@ class SoapExecutorTest {
     @Test
     fun executeMtom() {
         val step = SoapTestStep(TestCase("Multipart")).apply {
-            endpoint = Endpoint("Endpoint", "http://localhost:$port/mtom")
+            endpoint = Endpoint("Endpoint", "http://localhost:${server.port}/mtom")
             request.text("foobar")
         }
         val response = SoapExecutor().execute(step, ExecutionContext(TestConfiguration())) as SoapStepResponse
         assertTrue { response.success }
         assertTrue { response.mtom }
         assertFalse {
-            DiffBuilder.compare(simpleResponseText)
+            DiffBuilder.compare(server.simpleResponseText)
                     .withTest(response.document.toXml())
                     .ignoreComments()
                     .ignoreWhitespace()
@@ -94,40 +87,4 @@ class SoapExecutorTest {
         }
     }
 
-    private inner class SimpleHandler(private val responseText: String) : HttpRequestHandler {
-
-        override fun handle(request: HttpRequest, response: HttpResponse, context: HttpContext) {
-            response.entity = StringEntity(responseText, ContentType.TEXT_XML.withCharset(Charsets.UTF_8))
-        }
-    }
-
-    private inner class MtomHandler(private val responseText: String) : HttpRequestHandler {
-
-        override fun handle(request: HttpRequest, response: HttpResponse, context: HttpContext) {
-            if (request is HttpEntityEnclosingRequest) {
-                EntityUtils.consumeQuietly(request.entity)
-            }
-            val rootContentId = "<root>"
-            val multipart = ContentType.create("multipart/related").withParameters(BasicNameValuePair("type", MIMETYPE_SOAPXML),
-                    BasicNameValuePair("start", rootContentId),
-                    BasicNameValuePair("start-info", MIMETYPE_SOAPXML))
-            val rootPart = FormBodyPartBuilder.create()
-                    .setName("root")
-                    .setBody(StringBody(responseText, ContentType.APPLICATION_XML))
-                    .setField("Content-Transfer-Encoding", "binary")
-                    .setField("Content-Type", ContentType.create("application/xop+xml").withCharset(Charsets.UTF_8).withParameters(BasicNameValuePair("type", MIMETYPE_SOAPXML)).toString())
-                    .setField("Content-ID", rootContentId)
-                    .build()
-            val entity = MultipartEntityBuilder.create()
-                    .setMode(HttpMultipartMode.STRICT) // TODO: Is this right?
-                    .setContentType(multipart)
-                    .addPart(rootPart)
-                    .build()
-            response.entity = entity
-
-        }
-    }
-
-    private fun readResponse(fileName: String) =
-            Thread.currentThread().contextClassLoader.getResourceAsStream(fileName).reader().readText()
 }

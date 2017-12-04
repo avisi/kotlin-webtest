@@ -22,10 +22,12 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.URL
 import java.nio.charset.StandardCharsets
+import javax.activation.MimeType
 
 val soapNamespace = NamespaceDeclaration("soap", "http://schemas.xmlsoap.org/soap/envelope/")
+private val MAX_RESPONSE_LOG_LENGTH = 2000
 
-class SoapRequest(var body: SoapRequestBody? = null) : StepRequest, HttpRequest() {
+class SoapStepRequest(var body: SoapRequestBody? = null) : StepRequest, HttpRequest() {
     lateinit var testStep: SoapTestStep
 
     infix fun text(data: String) {
@@ -48,14 +50,19 @@ class SoapStepResponse(override val http: HttpResponse?,
 
     val document: Document
         get() =
+            body?.let { toDocument(ByteArrayInputStream(it.data)) }
+                    ?: error("Missing HTTP response.")
+
+    val body: HttpResponsePart?
+        get() =
             http?.let {
                 if (mtom) {
                     // TODO: What if this part is missing?
-                    (it as MultipartHttpResponse).parts[0].data
+                    (it as MultipartHttpResponse).parts[0]
                 } else {
-                    it.data
-                }.let { toDocument(ByteArrayInputStream(it)) }
-            } ?: error("Missing HTTP response.")
+                    it
+                }
+            }
 
     val mtom: Boolean
         get() =
@@ -120,24 +127,24 @@ class SoapExecutor : Executor<SoapTestStep> {
             log.error("SOAP request failed.", e)
             return buildError(httpResponse, e)
         }
-        log.info("Response, headers: ${httpResponse?.headers}, body: ${httpResponse?.data}")
 
-        return SoapStepResponse(httpResponse, endpoint, true).also {
+        return SoapStepResponse(httpResponse, endpoint, true).also { response ->
+            log.info("Response, headers: ${httpResponse?.headers}, body: ${response.body?.data?.shortText}")
             with(executionContext) {
                 previousRequest = request
-                previousResponse = it
+                previousResponse = response
             }
         }
     }
 
     private fun parseContentType(contentType: String): ContentType =
             // TODO: Charset should be parsed!
-            javax.mail.internet.ContentType(contentType)
+            MimeType(contentType)
                     .let { ct ->
                         ContentType.create(ct.baseType)
-                                .withParameters(*ct.parameterList.names
+                                .withParameters(*ct.parameters.names
                                         .asSequence()
-                                        .map { name -> BasicNameValuePair(name as String, ct.parameterList[name]) }
+                                        .map { name -> BasicNameValuePair(name as String, ct.parameters[name]) }
                                         .toList()
                                         .toTypedArray())
                     }
@@ -159,6 +166,10 @@ class SoapExecutor : Executor<SoapTestStep> {
 
     private fun getHttpClient() =
             HttpClients.createDefault()
+
+    private val ByteArray.shortText: String
+        get() =
+            String(this, 0, Math.min(MAX_RESPONSE_LOG_LENGTH, size)) + if (size > MAX_RESPONSE_LOG_LENGTH) "..." else ""
 
     companion object {
         private val log = LoggerFactory.getLogger(SoapExecutor::class.java)

@@ -8,7 +8,7 @@ import nl.avisi.kotlinwebtest.Endpoint
 import nl.avisi.kotlinwebtest.http.HttpResponse
 
 fun request() =
-        SoapRequest(RawSoapRequestBody(emptySoapEnvelope))
+        SoapStepRequest(RawSoapRequestBody(emptySoapEnvelope))
 
 fun response(xml: String) =
         SoapStepResponse(HttpResponse(200, xml.toByteArray(), listOf()), Endpoint(null, "http://localhost"), true)

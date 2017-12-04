@@ -4,12 +4,7 @@
  */
 package nl.avisi.kotlinwebtest.soap
 
-import nl.avisi.kotlinwebtest.Endpoint
-import nl.avisi.kotlinwebtest.ExecutionContext
-import nl.avisi.kotlinwebtest.TestCase
-import nl.avisi.kotlinwebtest.TestStep
-import nl.avisi.kotlinwebtest.Validator
-import nl.avisi.kotlinwebtest.ValidatorResult
+import nl.avisi.kotlinwebtest.*
 import nl.avisi.kotlinwebtest.expressions.Expression
 import nl.avisi.kotlinwebtest.expressions.ExpressionEvaluator
 import nl.avisi.kotlinwebtest.xml.NamespaceDeclaration
@@ -32,8 +27,8 @@ import javax.xml.validation.SchemaFactory
 import javax.xml.xpath.XPathException
 
 
-class SoapFaultValidator(var mustContainSoapFault: Boolean) : Validator<SoapRequest, SoapStepResponse> {
-    override fun validate(executionContext: ExecutionContext, request: SoapRequest, response: SoapStepResponse): ValidatorResult {
+class SoapFaultValidator(var mustContainSoapFault: Boolean) : Validator<SoapStepRequest, SoapStepResponse> {
+    override fun validate(executionContext: ExecutionContext, request: SoapStepRequest, response: SoapStepResponse): ValidatorResult {
         val fault = response.document.evaluate("//soap:Envelope/soap:Body/soap:Fault", listOf(soapNamespace))
         val hasSoapFault = fault != null
         if (mustContainSoapFault and !hasSoapFault) {
@@ -49,7 +44,7 @@ class SoapFaultValidator(var mustContainSoapFault: Boolean) : Validator<SoapRequ
 /**
  * TODO: This class should really validate using the service's WSDL
  */
-class XSDValidator : Validator<SoapRequest, SoapStepResponse> {
+class XSDValidator : Validator<SoapStepRequest, SoapStepResponse> {
     private fun schemaFactory(): SchemaFactory =
             SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
 
@@ -63,7 +58,7 @@ class XSDValidator : Validator<SoapRequest, SoapStepResponse> {
                     .newSchema(sources.map { StreamSource(it.toExternalForm()) }.toTypedArray())
                     .newValidator()
 
-    override fun validate(executionContext: ExecutionContext, request: SoapRequest, response: SoapStepResponse): ValidatorResult {
+    override fun validate(executionContext: ExecutionContext, request: SoapStepRequest, response: SoapStepResponse): ValidatorResult {
         createSoapEnvelopeValidator().let { validator ->
             try {
                 validator.validate(DOMSource(response.document))
@@ -92,15 +87,16 @@ class XSDValidator : Validator<SoapRequest, SoapStepResponse> {
                     .forEach { action(it) }
 }
 
-class SoapResponseValidator : Validator<SoapRequest, SoapStepResponse> {
-    override fun validate(executionContext: ExecutionContext, request: SoapRequest, response: SoapStepResponse): ValidatorResult {
-        val contentType = response.http?.contentType ?: return failure("SOAP response is missing content type.")
-        if (MimeType(contentType).baseType != "text/xml") return failure("Unexpected Content-Type in response: $contentType")
+class SoapResponseValidator : Validator<SoapStepRequest, SoapStepResponse> {
+    override fun validate(executionContext: ExecutionContext, request: SoapStepRequest, response: SoapStepResponse): ValidatorResult {
+        val actualType = response.body?.contentType ?: return failure("SOAP response is missing content type.")
+        val expectedType: String = if (response.mtom) "application/xop+xml" else "text/xml"
+        if (MimeType(actualType).baseType != expectedType) return failure("Unexpected Content-Type in response, expected: $expectedType: $actualType")
         return success()
     }
 }
 
-class SoapTestStep(testCase: TestCase) : TestStep<SoapRequest, SoapStepResponse>(testCase, SoapRequest()) {
+class SoapTestStep(testCase: TestCase) : TestStep<SoapStepRequest, SoapStepResponse>(testCase, SoapStepRequest()) {
     var endpoint: Endpoint? = null
 
     init {
@@ -114,13 +110,13 @@ class SoapTestStep(testCase: TestCase) : TestStep<SoapRequest, SoapStepResponse>
             endpoint ?: configuration.defaults.endpoint
 }
 
-class XPathValidator(val xpath: String, var value: Expression? = null) : Validator<SoapRequest, SoapStepResponse> {
+class XPathValidator(val xpath: String, var value: Expression? = null) : Validator<SoapStepRequest, SoapStepResponse> {
 
     companion object {
         private val log = LoggerFactory.getLogger(XPathValidator::class.java)
     }
 
-    override fun validate(executionContext: ExecutionContext, request: SoapRequest, response: SoapStepResponse): ValidatorResult {
+    override fun validate(executionContext: ExecutionContext, request: SoapStepRequest, response: SoapStepResponse): ValidatorResult {
         val expectedValue = value?.let { ExpressionEvaluator(executionContext).evaluate(it) } ?: error("XPathValidator is missing expected value")
 
         val actualValue: Node?
