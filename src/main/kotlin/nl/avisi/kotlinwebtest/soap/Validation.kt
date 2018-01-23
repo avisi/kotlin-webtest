@@ -104,7 +104,7 @@ class SoapTestStep(testCase: TestCase) : TestStep<SoapStepRequest, SoapStepRespo
     }
 
     fun resolveUrl(endpoint: Endpoint): String =
-            endpoint.url.toString() + request.path
+            endpoint.url.toString() + request.path.orEmpty()
 
     fun resolveEndpoint(configuration: SoapTestConfiguration): Endpoint? =
             endpoint ?: configuration.defaults.endpoint

@@ -52,6 +52,7 @@ class SoapExecutorTest {
     fun execute() {
         val step = SoapTestStep(TestCase("Multipart")).apply {
             endpoint = Endpoint("Endpoint", "http://localhost:${server.port}/simple")
+            request.path("/")
             request.text("foobar")
         }
         val response = SoapExecutor().execute(step, ExecutionContext(TestConfiguration())) as SoapStepResponse
@@ -71,6 +72,7 @@ class SoapExecutorTest {
     fun executeMtom() {
         val step = SoapTestStep(TestCase("Multipart")).apply {
             endpoint = Endpoint("Endpoint", "http://localhost:${server.port}/mtom")
+            request.path("/")
             request.text("foobar")
         }
         val response = SoapExecutor().execute(step, ExecutionContext(TestConfiguration())) as SoapStepResponse

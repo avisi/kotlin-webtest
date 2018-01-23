@@ -4,6 +4,7 @@
  */
 package nl.avisi.kotlinwebtest.http
 
+import nl.avisi.kotlinwebtest.Credentials
 import nl.avisi.kotlinwebtest.Endpoint
 import nl.avisi.kotlinwebtest.StepRequest
 import nl.avisi.kotlinwebtest.StepResponse
@@ -11,8 +12,9 @@ import nl.avisi.kotlinwebtest.StepResponse
 
 abstract class HttpRequest : StepRequest {
     var method: HttpMethod = HttpMethod.GET
-    var path: String = "/"
+    var path: String? = null
     var headers: MutableList<HttpHeader> = mutableListOf()
+    var credentials: Credentials? = null
 
     abstract infix fun endpoint(endpoint: Endpoint)
 
@@ -22,6 +24,10 @@ abstract class HttpRequest : StepRequest {
 
     infix fun method(method: HttpMethod) {
         this.method = method
+    }
+
+    infix fun credentials(credentials: Credentials) {
+        this.credentials = credentials
     }
 
     infix fun header(header: String): RequestHeaderBuilder =

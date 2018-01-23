@@ -96,4 +96,5 @@ class ExecutionContext(val configuration: TestConfiguration,
 class Endpoint(val name: String?, url: String) : Extendable() {
 
     val url = URL(url)
+    var credentials: Credentials? = null
 }

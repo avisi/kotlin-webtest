@@ -19,4 +19,13 @@ fun endpoint(name: String?, url: String, init: (EndpointConfigurer.() -> Unit)? 
             }
         }
 
-class EndpointConfigurer(val endpoint: Endpoint)
+class EndpointConfigurer(val endpoint: Endpoint) {
+
+    val request = EndpointRequestConfigurer()
+
+    inner class EndpointRequestConfigurer {
+        infix fun credentials(credentials: Credentials) {
+            endpoint.credentials = credentials
+        }
+    }
+}
