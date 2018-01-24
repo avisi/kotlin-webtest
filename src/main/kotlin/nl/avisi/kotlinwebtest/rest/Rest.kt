@@ -8,13 +8,15 @@ import nl.avisi.kotlinwebtest.*
 import nl.avisi.kotlinwebtest.expressions.ExpressionEvaluator
 import nl.avisi.kotlinwebtest.expressions.findExpressions
 import nl.avisi.kotlinwebtest.http.HttpHeader
+import nl.avisi.kotlinwebtest.http.HttpMethod
 import nl.avisi.kotlinwebtest.http.HttpRequest
 import nl.avisi.kotlinwebtest.http.HttpResponse
 import nl.avisi.kotlinwebtest.http.HttpStepResponse
+import nl.avisi.kotlinwebtest.http.getHttpClient
+import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.HttpClients
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -35,6 +37,9 @@ class RestRequest(var body: String? = null) : StepRequest, HttpRequest() {
 class RestStepResponse(override val http: HttpResponse?,
                        override val success: Boolean,
                        override val message: String? = null) : HttpStepResponse {
+    val body: String?
+        get() =
+            http?.dataAsString
 }
 
 class RestTestStep(testCase: TestCase) : TestStep<RestRequest, RestStepResponse>(testCase, RestRequest()) {
@@ -44,28 +49,38 @@ class RestTestStep(testCase: TestCase) : TestStep<RestRequest, RestStepResponse>
         request.testStep = this
     }
 
-    fun resolveUrl(configuration: RestTestConfiguration): String? {
-        return (endpoint ?: configuration.defaults.endpoint ?: return null).url.toString() + request.path
+    fun resolveUrl(endpoint: Endpoint): String? {
+        return endpoint.url.toString() + request.path
     }
 
+    fun resolveEndpoint(configuration: RestTestConfiguration): Endpoint? =
+            endpoint ?: configuration.defaults.endpoint
 }
 
 class RestExecutor : Executor<RestTestStep> {
 
     override fun execute(step: RestTestStep, executionContext: ExecutionContext): StepResponse {
         val request = step.request
-        val requestData = (request.body ?: error("No body configured for REST test step."))
-                .let { interpolateExpressions(it, executionContext) }
+        val requestData = request.body
+                ?.let { interpolateExpressions(it, executionContext) }
         val configuration = executionContext.configuration[RestTestConfiguration::class]
+        val endpoint = step.resolveEndpoint(configuration) ?: error("No endpoint configured for REST test step.")
 
+        val url = step.resolveUrl(endpoint)
         var httpResponse: HttpResponse? = null
         try {
-            getHttpClient().use {
-                val httpRequest = HttpPost(step.resolveUrl(configuration))
+            getHttpClient(endpoint.credentials ?: request.credentials).use { it ->
+                val httpRequest = when (request.method) {
+                    HttpMethod.GET -> HttpGet(url)
+                    HttpMethod.POST -> HttpPost(url).also {
+                        requestData ?: error("No body configured for REST test step.")
+                        it.entity = StringEntity(requestData, ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8))
+                    }
+                    else -> error("Request method not supported: ${request.method}")
+                }
                 configuration.defaults.headers.forEach { (name, value) -> httpRequest.setHeader(name, value) }
                 request.headers.forEach { (name, value) -> httpRequest.setHeader(name, value) }
                 log.info("Sending request to {}: {}", httpRequest.uri, requestData)
-                httpRequest.entity = StringEntity(requestData, ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8))
                 val response = it.execute(httpRequest)
                 response.use {
                     response.entity.content.use {
@@ -84,7 +99,7 @@ class RestExecutor : Executor<RestTestStep> {
                 }
             }
         }
-        log.info("Response: ${httpResponse?.data}")
+        log.info("Response: ${httpResponse?.data?.let { String(it) }}")
         return RestStepResponse(httpResponse, true).also {
             with(executionContext) {
                 previousRequest = request
@@ -103,9 +118,6 @@ class RestExecutor : Executor<RestTestStep> {
         }
         return interpolatedRequestData
     }
-
-    private fun getHttpClient() =
-            HttpClients.createDefault()
 
     companion object {
         private val log = LoggerFactory.getLogger(RestExecutor::class.java)

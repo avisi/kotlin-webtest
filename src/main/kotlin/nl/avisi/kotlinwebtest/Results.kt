@@ -36,7 +36,7 @@ interface ResultWriter {
 class TextResultWriter(private val writer: Writer, private val newline: String = System.getProperty("line.separator")) : ResultWriter {
 
     override fun write(results: Results) {
-        write("======== RESULTS ========")
+        write("\n======== RESULTS ========")
         results.tests.forEach({
             write("[ ${it.successText} ] Test: ${it.test.name}")
             it.steps.forEach({
