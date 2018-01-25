@@ -10,17 +10,10 @@ import nl.avisi.kotlinwebtest.expressions.findExpressions
 import nl.avisi.kotlinwebtest.http.*
 import nl.avisi.kotlinwebtest.xml.NamespaceDeclaration
 import nl.avisi.kotlinwebtest.xml.toDocument
-import org.apache.http.auth.AuthScope
-import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.methods.HttpPost
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.BasicCredentialsProvider
-import org.apache.http.impl.client.HttpClients
 import org.apache.http.message.BasicNameValuePair
-import org.apache.http.ssl.SSLContextBuilder
 import org.slf4j.LoggerFactory
 import org.w3c.dom.Document
 import java.io.ByteArrayInputStream
@@ -29,8 +22,6 @@ import java.io.InputStream
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import javax.activation.MimeType
-import javax.net.ssl.HostnameVerifier
-
 
 val soapNamespace = NamespaceDeclaration("soap", "http://schemas.xmlsoap.org/soap/envelope/")
 private val MAX_RESPONSE_LOG_LENGTH = 2000
@@ -172,31 +163,6 @@ class SoapExecutor : Executor<SoapTestStep> {
         }
         return interpolatedRequestData
     }
-
-    private fun getHttpClient(credentials: Credentials?) =
-            HttpClients.custom()
-                    .setSSLSocketFactory(SSLConnectionSocketFactory(sslContext(), sslHostnameVerifier()))
-                    .setDefaultCredentialsProvider(credentialsProvider(credentials))
-                    .build()
-
-    private fun credentialsProvider(credentials: Credentials?) =
-            credentials?.let {
-                BasicCredentialsProvider().apply {
-                    setCredentials(AuthScope.ANY, mapCredentials(credentials))
-                }
-            }
-
-    private fun mapCredentials(credentials: Credentials): UsernamePasswordCredentials =
-            when (credentials) {
-                is UsernamePassword -> UsernamePasswordCredentials(credentials.user, credentials.password)
-                else -> error("Unsupported credential type: " + credentials)
-            }
-
-    private fun sslHostnameVerifier(): HostnameVerifier =
-            HostnameVerifier { _, _ -> true }
-
-    private fun sslContext() =
-            SSLContextBuilder().loadTrustMaterial(null, TrustSelfSignedStrategy()).build()
 
     private val ByteArray.shortText: String
         get() =
