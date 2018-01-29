@@ -17,13 +17,6 @@ import nl.avisi.kotlinwebtest.rest.RestRequestDefaults
 import nl.avisi.kotlinwebtest.rest.RestStepResponse
 import nl.avisi.kotlinwebtest.rest.RestTestConfiguration
 import nl.avisi.kotlinwebtest.rest.RestTestStep
-import nl.avisi.kotlinwebtest.soap.XPathValidator
-import org.apache.commons.io.FileUtils
-import org.json.JSONException
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
-import org.slf4j.LoggerFactory
-import java.io.File
 
 class RestSettingsBuilder(val configuration: TestConfiguration) {
     fun default(init: DefaultSettingsBuilder.() -> Unit) {
@@ -40,7 +33,7 @@ infix fun RestTestStep.validate(init: Validation.() -> Unit) {
 
 class Validation(private val step: RestTestStep) {
     fun http_status(): HttpStatusValidationBuilder<RestRequest, RestStepResponse> = HttpStatusValidationBuilder(step)
-    fun json(mode: CompareMode = CompareMode.STRICT): JsonValidationBuilder<RestRequest, RestStepResponse> = JsonValidationBuilder(step, mode)
+    fun json(mode: CompareMode = CompareMode.STRICT, vararg pathAndRegex: Pair<String, String>): JsonValidationBuilder<RestRequest, RestStepResponse> = JsonValidationBuilder(step, mode, *pathAndRegex)
 }
 
 fun KosoteTest.rest(init: RestSettingsBuilder.() -> Unit) {
@@ -55,9 +48,9 @@ infix fun StepBuilder.rest(init: RestTestStep.() -> Unit): RestTestStep {
     return step
 }
 
-class JsonValidationBuilder<RequestType : RestRequest, ResponseType : RestStepResponse>(private val step: TestStep<RequestType, ResponseType>, val mode: CompareMode) {
+class JsonValidationBuilder<RequestType : RestRequest, ResponseType : RestStepResponse>(private val step: TestStep<RequestType, ResponseType>, val mode: CompareMode, vararg val pathAndRegex: Pair<String, String>) {
     infix fun matches(value: String) {
-        step.validators.add(JsonValidator(mode, ConstantExpression(value)))
+        step.validators.add(JsonValidator(mode, ConstantExpression(value), *pathAndRegex))
     }
 
     infix fun matches_file(path: String) {
