@@ -4,11 +4,11 @@
  */
 package nl.avisi.kotlinwebtest.xml.dsl
 
-import nl.avisi.kotlinwebtest.KosoteTest
+import nl.avisi.kotlinwebtest.WebTest
 import nl.avisi.kotlinwebtest.TestConfiguration
 import nl.avisi.kotlinwebtest.xml.NamespaceDeclaration
 
-fun KosoteTest.xml(init: XmlSettingsBuilder.() -> Unit) {
+fun WebTest.xml(init: XmlSettingsBuilder.() -> Unit) {
     val builder = XmlSettingsBuilder(testConfiguration)
     builder.init()
 }

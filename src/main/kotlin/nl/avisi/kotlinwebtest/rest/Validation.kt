@@ -28,12 +28,12 @@ enum class CompareMode {
             }
 }
 
-class JsonValidator(val mode: CompareMode, var value: Expression? = null, vararg val pathAndRegex : Pair<String, String>) : Validator<RestRequest, RestStepResponse> {
+class JsonValidator(val mode: CompareMode, var value: Expression? = null, vararg val pathAndRegex : Pair<String, String>) : Validator<RestStepRequest, RestStepResponse> {
     companion object {
         private val log = LoggerFactory.getLogger(JsonValidator::class.java)
     }
 
-    override fun validate(executionContext: ExecutionContext, request: RestRequest, response: RestStepResponse): ValidatorResult {
+    override fun validate(executionContext: ExecutionContext, request: RestStepRequest, response: RestStepResponse): ValidatorResult {
         val expectedValue = value?.let { ExpressionEvaluator(executionContext).evaluate(it) } ?: error("JsonValidator is missing expected value")
 
         val matcher = pathAndRegex

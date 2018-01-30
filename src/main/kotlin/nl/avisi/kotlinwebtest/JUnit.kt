@@ -15,7 +15,7 @@ import org.junit.Before
 import org.slf4j.LoggerFactory
 import java.io.StringWriter
 
-abstract class KosoteTest {
+abstract class WebTest {
 
     val testConfiguration = TestConfiguration()
     private val project = Project(formatName())
@@ -83,7 +83,7 @@ abstract class KosoteTest {
 
     companion object {
         const val testPostfix = "Test"
-        private val log = LoggerFactory.getLogger(KosoteTest::class.java)
+        private val log = LoggerFactory.getLogger(WebTest::class.java)
     }
 }
 

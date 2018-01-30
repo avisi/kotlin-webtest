@@ -6,7 +6,7 @@ package nl.avisi.kotlinwebtest.soap.dsl
 
 import nl.avisi.kotlinwebtest.Endpoint
 import nl.avisi.kotlinwebtest.EndpointConfigurer
-import nl.avisi.kotlinwebtest.KosoteTest
+import nl.avisi.kotlinwebtest.WebTest
 import nl.avisi.kotlinwebtest.StepBuilder
 import nl.avisi.kotlinwebtest.TestConfiguration
 import nl.avisi.kotlinwebtest.expressions.ConstantExpression
@@ -24,7 +24,7 @@ import nl.avisi.kotlinwebtest.soap.SoapTestStep
 import nl.avisi.kotlinwebtest.soap.XPathValidator
 import nl.avisi.kotlinwebtest.soap.XSDValidator
 
-fun KosoteTest.soap(init: SoapSettingsBuilder.() -> Unit) {
+fun WebTest.soap(init: SoapSettingsBuilder.() -> Unit) {
     val builder = SoapSettingsBuilder(testConfiguration)
     builder.init()
 }

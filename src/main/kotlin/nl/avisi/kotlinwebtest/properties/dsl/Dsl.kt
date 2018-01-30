@@ -4,12 +4,12 @@
  */
 package nl.avisi.kotlinwebtest.properties.dsl
 
-import nl.avisi.kotlinwebtest.KosoteTest
+import nl.avisi.kotlinwebtest.WebTest
 import nl.avisi.kotlinwebtest.StepBuilder
 import nl.avisi.kotlinwebtest.TestConfiguration
 import nl.avisi.kotlinwebtest.properties.PropertyTestStep
 
-fun KosoteTest.properties(init: PropertiesBuilder.() -> Unit) {
+fun WebTest.properties(init: PropertiesBuilder.() -> Unit) {
     val builder = PropertiesBuilder(testConfiguration)
     builder.init()
 }

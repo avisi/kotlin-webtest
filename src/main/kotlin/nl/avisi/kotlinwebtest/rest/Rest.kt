@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 
-class RestRequest(var body: String? = null) : StepRequest, HttpRequest() {
+class RestStepRequest(var body: String? = null) : StepRequest, HttpRequest() {
 
     lateinit var testStep: RestTestStep
 
@@ -42,7 +42,7 @@ class RestStepResponse(override val http: HttpResponse?,
             http?.dataAsString
 }
 
-class RestTestStep(testCase: TestCase) : TestStep<RestRequest, RestStepResponse>(testCase, RestRequest()) {
+class RestTestStep(testCase: TestCase) : TestStep<RestStepRequest, RestStepResponse>(testCase, RestStepRequest()) {
     var endpoint: Endpoint? = null
 
     init {

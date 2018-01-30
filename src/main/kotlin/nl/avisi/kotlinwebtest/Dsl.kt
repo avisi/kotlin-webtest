@@ -5,7 +5,7 @@
 package nl.avisi.kotlinwebtest
 
 @DslMarker
-annotation class KosoteDsl
+annotation class WebTestDsl
 
 fun endpoint(url: String, init: (EndpointConfigurer.() -> Unit)? = null): Endpoint =
         endpoint(null, url, init)

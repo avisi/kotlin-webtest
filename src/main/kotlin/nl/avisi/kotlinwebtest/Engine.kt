@@ -16,7 +16,7 @@ interface StepResponse : Result
 
 
 // TestCase
-@KosoteDsl
+@WebTestDsl
 abstract class TestStep<RequestType : StepRequest, ResponseType : StepResponse>(override val testCase: TestCase, val request: RequestType) : TestCaseBuilder {
     val validators: MutableList<Validator<RequestType, ResponseType>> = mutableListOf()
         get() = field
@@ -53,7 +53,7 @@ abstract class TestStep<RequestType : StepRequest, ResponseType : StepResponse>(
 
 }
 
-@KosoteDsl
+@WebTestDsl
 class TestCase(val name: String) : TestCaseBuilder {
 
     val steps: MutableList<TestStep<*, *>> = mutableListOf()

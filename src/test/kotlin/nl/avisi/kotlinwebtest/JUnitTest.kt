@@ -11,7 +11,7 @@ import nl.avisi.kotlinwebtest.soap.dsl.soap
 /**
  * Class intended to demonstrate/test JUnit DSL features.
  */
-class JUnitTest : KosoteTest() {
+class JUnitTest : WebTest() {
 
     override fun configure() {
         properties {
