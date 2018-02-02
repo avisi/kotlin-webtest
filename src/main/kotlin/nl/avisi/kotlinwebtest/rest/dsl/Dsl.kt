@@ -34,7 +34,7 @@ infix fun RestTestStep.validate(init: Validation.() -> Unit) {
 
 class Validation(private val step: RestTestStep) {
     fun http_status(): HttpStatusValidationBuilder<RestStepRequest, RestStepResponse> = HttpStatusValidationBuilder(step)
-    fun json(mode: CompareMode = CompareMode.STRICT, vararg pathAndRegex: Pair<String, String>): JsonValidationBuilder<RestStepRequest, RestStepResponse> = JsonValidationBuilder(step, mode, *pathAndRegex)
+    fun json(mode: CompareMode = CompareMode.STRICT): JsonValidationBuilder<RestStepRequest, RestStepResponse> = JsonValidationBuilder(step, mode)
     fun json_path(jsonPath : String): JsonPathValidationBuilder<RestStepRequest, RestStepResponse> = JsonPathValidationBuilder(step, jsonPath)
 }
 
@@ -52,7 +52,7 @@ infix fun StepBuilder.rest(init: RestTestStep.() -> Unit): RestTestStep {
 
 class JsonValidationBuilder<RequestType : RestStepRequest, ResponseType : RestStepResponse>(private val step: TestStep<RequestType, ResponseType>, val mode: CompareMode, vararg val pathAndRegex: Pair<String, String>) {
     infix fun matches(value: String) {
-        step.validators.add(JsonValidator(mode, ConstantExpression(value), *pathAndRegex))
+        step.validators.add(JsonValidator(mode, ConstantExpression(value)))
     }
 
     infix fun matches_file(path: String) {

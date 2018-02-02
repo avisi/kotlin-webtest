@@ -17,7 +17,7 @@ class RestDslTest : WebTest() {
         private val RANDOM_PORT = 0
     }
 
-    var wiremock = WireMockRule(options().port(RANDOM_PORT))
+    val wiremock = WireMockRule(options().port(RANDOM_PORT))
         @Rule get() = field
 
     override fun configure() {

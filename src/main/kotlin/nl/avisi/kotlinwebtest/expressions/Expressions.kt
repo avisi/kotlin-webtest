@@ -18,6 +18,14 @@ operator fun Expression.plus(other: Expression): CompositeExpression =
 data class ConstantExpression(val value: String) : Expression
 data class PropertyExpression(val name: String) : Expression
 
+fun property(name: String): PropertyExpression =
+        PropertyExpression(name)
+
+data class XPathExpression(val path: String) : Expression
+
+fun xpath(path: String): XPathExpression =
+        XPathExpression(path)
+
 class ExpressionEvaluator(private val executionContext: ExecutionContext) {
 
     fun evaluate(expression: Expression): String? =

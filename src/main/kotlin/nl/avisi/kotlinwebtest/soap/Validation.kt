@@ -110,14 +110,14 @@ class SoapTestStep(testCase: TestCase) : TestStep<SoapStepRequest, SoapStepRespo
             endpoint ?: configuration.defaults.endpoint
 }
 
-class XPathValidator(val xpath: String, val value: Expression) : Validator<SoapStepRequest, SoapStepResponse> {
+class XPathValidator(val xpath: String, var value: Expression? = null) : Validator<SoapStepRequest, SoapStepResponse> {
 
     companion object {
         private val log = LoggerFactory.getLogger(XPathValidator::class.java)
     }
 
     override fun validate(executionContext: ExecutionContext, request: SoapStepRequest, response: SoapStepResponse): ValidatorResult {
-        val expectedValue = value.let { ExpressionEvaluator(executionContext).evaluate(it) } ?: error("XPathValidator is missing expected value")
+        val expectedValue = value?.let { ExpressionEvaluator(executionContext).evaluate(it) } ?: error("XPathValidator is missing expected value")
 
         val actualValue: Node?
         try {
