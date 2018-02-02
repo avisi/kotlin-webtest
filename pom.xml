@@ -88,6 +88,14 @@
             <artifactId>json-path</artifactId>
             <version>${jsonpath.version}</version>
         </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>2.14.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
