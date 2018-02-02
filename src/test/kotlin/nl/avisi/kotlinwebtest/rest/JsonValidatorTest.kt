@@ -123,4 +123,24 @@ class JsonValidatorTest {
         val result = validator.validate(context, request(), response(actual))
         assertTrue(result.message) { result.success }
     }
+
+    @Test
+    fun testJsonPath() {
+        val actual = """
+            [
+                {
+                    "foo": {
+                        "bar": [
+                            2018,
+                            29,
+                            10
+                        ]
+                    }
+                }
+            ]
+            """
+        val validator = JsonPathValidator("$[0].foo.bar", listOf(2018, 29, 10))
+        val result = validator.validate(context, request(), response(actual))
+        assertTrue(result.message) { result.success }
+    }
 }

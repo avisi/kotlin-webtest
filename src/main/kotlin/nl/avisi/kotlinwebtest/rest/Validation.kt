@@ -1,5 +1,6 @@
 package nl.avisi.kotlinwebtest.rest
 
+import com.jayway.jsonpath.JsonPath
 import nl.avisi.kotlinwebtest.ExecutionContext
 import nl.avisi.kotlinwebtest.Validator
 import nl.avisi.kotlinwebtest.ValidatorResult
@@ -19,7 +20,7 @@ enum class CompareMode {
     NON_EXTENSIBLE,
     STRICT_ORDER;
 
-     internal fun getJsonCompareMode(): JSONCompareMode =
+    internal fun getJsonCompareMode(): JSONCompareMode =
             when (this) {
                 CompareMode.STRICT -> JSONCompareMode.STRICT
                 CompareMode.LENIENT -> JSONCompareMode.LENIENT
@@ -28,13 +29,13 @@ enum class CompareMode {
             }
 }
 
-class JsonValidator(val mode: CompareMode, var value: Expression? = null, vararg val pathAndRegex : Pair<String, String>) : Validator<RestStepRequest, RestStepResponse> {
+class JsonValidator(val mode: CompareMode, val value: Expression, vararg val pathAndRegex: Pair<String, String>) : Validator<RestStepRequest, RestStepResponse> {
     companion object {
         private val log = LoggerFactory.getLogger(JsonValidator::class.java)
     }
 
     override fun validate(executionContext: ExecutionContext, request: RestStepRequest, response: RestStepResponse): ValidatorResult {
-        val expectedValue = value?.let { ExpressionEvaluator(executionContext).evaluate(it) } ?: error("JsonValidator is missing expected value")
+        val expectedValue = value.let { ExpressionEvaluator(executionContext).evaluate(it) } ?: error("JsonValidator is missing expected value")
 
         val matcher = pathAndRegex
                 .takeIf { it.isNotEmpty() }
@@ -55,6 +56,21 @@ class JsonValidator(val mode: CompareMode, var value: Expression? = null, vararg
                 log.warn("Error parsing JSON: $expectedValue", e)
                 return failure("JSON failure, no valid JSON supplied")
             }
+        }
+    }
+}
+
+class JsonPathValidator(private val jsonPath: String, private val expectedValue: Any) : Validator<RestStepRequest, RestStepResponse> {
+
+    override fun validate(executionContext: ExecutionContext, request: RestStepRequest, response: RestStepResponse): ValidatorResult {
+        if (response.body == null) return failure("JSON failure, no match found for $expectedValue")
+        val document = JsonPath.parse(response.body)
+        val actualValue: Any = document.read(jsonPath)
+
+        return if (expectedValue == actualValue) {
+            success()
+        } else {
+            failure("Expected: $expectedValue but was: $actualValue")
         }
     }
 }
