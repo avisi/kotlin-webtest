@@ -43,7 +43,7 @@ class RestDslTest : WebTest() {
                 }
             ]
             """
-        wiremock.stubFor(get(urlEqualTo("/foo")).willReturn(ok(actual)))
+        wiremock.stubFor(get(urlEqualTo("/foo")).willReturn(ok(actual).withHeader("Content-Type", "application/json")))
 
         test("Test") {
             step rest {
@@ -55,7 +55,7 @@ class RestDslTest : WebTest() {
                     json_path("$[0].foo.bar") matches listOf(2018, 29, 10)
                     json() matches actual
                     json_path("$[0].foo") matches mapOf("bar" to listOf(2018, 29, 10))
-
+                    http_header("Content-Type") matches "application/json"
                 }
             }
         }

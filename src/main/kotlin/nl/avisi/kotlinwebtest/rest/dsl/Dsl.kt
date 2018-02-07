@@ -4,17 +4,18 @@
  */
 package nl.avisi.kotlinwebtest.rest.dsl
 
-import nl.avisi.kotlinwebtest.WebTest
 import nl.avisi.kotlinwebtest.StepBuilder
 import nl.avisi.kotlinwebtest.TestConfiguration
 import nl.avisi.kotlinwebtest.TestStep
+import nl.avisi.kotlinwebtest.WebTest
 import nl.avisi.kotlinwebtest.expressions.ConstantExpression
+import nl.avisi.kotlinwebtest.http.HttpHeaderValidationBuilder
 import nl.avisi.kotlinwebtest.http.HttpStatusValidationBuilder
 import nl.avisi.kotlinwebtest.rest.CompareMode
 import nl.avisi.kotlinwebtest.rest.JsonPathValidator
 import nl.avisi.kotlinwebtest.rest.JsonValidator
-import nl.avisi.kotlinwebtest.rest.RestStepRequest
 import nl.avisi.kotlinwebtest.rest.RestRequestDefaults
+import nl.avisi.kotlinwebtest.rest.RestStepRequest
 import nl.avisi.kotlinwebtest.rest.RestStepResponse
 import nl.avisi.kotlinwebtest.rest.RestTestConfiguration
 import nl.avisi.kotlinwebtest.rest.RestTestStep
@@ -33,9 +34,10 @@ infix fun RestTestStep.validate(init: Validation.() -> Unit) {
 }
 
 class Validation(private val step: RestTestStep) {
-    fun http_status(): HttpStatusValidationBuilder<RestStepRequest, RestStepResponse> = HttpStatusValidationBuilder(step)
-    fun json(mode: CompareMode = CompareMode.STRICT): JsonValidationBuilder<RestStepRequest, RestStepResponse> = JsonValidationBuilder(step, mode)
-    fun json_path(jsonPath : String): JsonPathValidationBuilder<RestStepRequest, RestStepResponse> = JsonPathValidationBuilder(step, jsonPath)
+    fun http_status() = HttpStatusValidationBuilder(step)
+    fun http_header(header: String) = HttpHeaderValidationBuilder(header, step)
+    fun json(mode: CompareMode = CompareMode.STRICT) = JsonValidationBuilder(step, mode)
+    fun json_path(jsonPath: String) = JsonPathValidationBuilder(step, jsonPath)
 }
 
 fun WebTest.rest(init: RestSettingsBuilder.() -> Unit) {
