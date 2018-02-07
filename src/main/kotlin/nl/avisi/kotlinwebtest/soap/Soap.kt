@@ -99,7 +99,7 @@ class SoapExecutor : Executor<SoapTestStep> {
                     }
                 }
 
-        var url = step.resolveUrl(endpoint)
+        val url = step.resolveUrl(endpoint)
         log.info("Sending request:\n URL: {}\n Data: {}", url, requestData)
         var httpResponse: HttpResponse? = null
         try {

@@ -8,11 +8,11 @@ I might even fix some bugs if you ask nicely (be sure to supply logs, steps to r
 This implementation is not intended to be feature-complete but one which is just enough to test a spec-compliant SOAP-service, but nothing more.
 This means it might fail to detect an in theory malformed/invalid SOAP-response which parses OK.
 
-Validators: HTTP responses, SOAP faults, XPath, XSD
+Validators: HTTP Status, HTTP responses, SOAP faults, XPath, XSD
 
 ## REST ##
 
-Validators: HTTP responses
+Validators: HTTP Status, HTTP responses, Json Path
 
 # TODO #
 The following stuff (and much more) needs to be done:

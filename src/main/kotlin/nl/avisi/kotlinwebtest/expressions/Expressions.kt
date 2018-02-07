@@ -15,40 +15,13 @@ operator fun Expression.plus(other: Expression): CompositeExpression =
         CompositeExpression(this, other)
 
 
-class ConstantExpression(val value: String) : Expression
-
-class PropertyExpression(val name: String) : Expression {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is PropertyExpression) return false
-
-        if (name != other.name) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return name.hashCode()
-    }
-}
+data class ConstantExpression(val value: String) : Expression
+data class PropertyExpression(val name: String) : Expression
 
 fun property(name: String): PropertyExpression =
         PropertyExpression(name)
 
-class XPathExpression(val path: String) : Expression {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is XPathExpression) return false
-
-        if (path != other.path) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return path.hashCode()
-    }
-}
+data class XPathExpression(val path: String) : Expression
 
 fun xpath(path: String): XPathExpression =
         XPathExpression(path)

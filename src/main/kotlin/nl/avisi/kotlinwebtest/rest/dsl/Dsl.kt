@@ -11,6 +11,7 @@ import nl.avisi.kotlinwebtest.TestStep
 import nl.avisi.kotlinwebtest.expressions.ConstantExpression
 import nl.avisi.kotlinwebtest.http.HttpStatusValidationBuilder
 import nl.avisi.kotlinwebtest.rest.CompareMode
+import nl.avisi.kotlinwebtest.rest.JsonPathValidator
 import nl.avisi.kotlinwebtest.rest.JsonValidator
 import nl.avisi.kotlinwebtest.rest.RestStepRequest
 import nl.avisi.kotlinwebtest.rest.RestRequestDefaults
@@ -33,7 +34,8 @@ infix fun RestTestStep.validate(init: Validation.() -> Unit) {
 
 class Validation(private val step: RestTestStep) {
     fun http_status(): HttpStatusValidationBuilder<RestStepRequest, RestStepResponse> = HttpStatusValidationBuilder(step)
-    fun json(mode: CompareMode = CompareMode.STRICT, vararg pathAndRegex: Pair<String, String>): JsonValidationBuilder<RestStepRequest, RestStepResponse> = JsonValidationBuilder(step, mode, *pathAndRegex)
+    fun json(mode: CompareMode = CompareMode.STRICT): JsonValidationBuilder<RestStepRequest, RestStepResponse> = JsonValidationBuilder(step, mode)
+    fun json_path(jsonPath : String): JsonPathValidationBuilder<RestStepRequest, RestStepResponse> = JsonPathValidationBuilder(step, jsonPath)
 }
 
 fun WebTest.rest(init: RestSettingsBuilder.() -> Unit) {
@@ -50,10 +52,16 @@ infix fun StepBuilder.rest(init: RestTestStep.() -> Unit): RestTestStep {
 
 class JsonValidationBuilder<RequestType : RestStepRequest, ResponseType : RestStepResponse>(private val step: TestStep<RequestType, ResponseType>, val mode: CompareMode, vararg val pathAndRegex: Pair<String, String>) {
     infix fun matches(value: String) {
-        step.validators.add(JsonValidator(mode, ConstantExpression(value), *pathAndRegex))
+        step.validators.add(JsonValidator(mode, ConstantExpression(value)))
     }
 
     infix fun matches_file(path: String) {
         matches(Thread.currentThread().contextClassLoader.getResource(path).readText())
+    }
+}
+
+class JsonPathValidationBuilder<RequestType : RestStepRequest, ResponseType : RestStepResponse>(private val step: TestStep<RequestType, ResponseType>, val jsonPath: String) {
+    infix fun matches(value: Any) {
+        step.validators.add(JsonPathValidator(jsonPath, value))
     }
 }

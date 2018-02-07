@@ -19,7 +19,6 @@ interface StepResponse : Result
 @WebTestDsl
 abstract class TestStep<RequestType : StepRequest, ResponseType : StepResponse>(override val testCase: TestCase, val request: RequestType) : TestCaseBuilder {
     val validators: MutableList<Validator<RequestType, ResponseType>> = mutableListOf()
-        get() = field
     val afterwards: MutableList<(context: ExecutionContext) -> Unit> = mutableListOf()
     var name: String? = null
 
