@@ -5,9 +5,7 @@ import nl.avisi.kotlinwebtest.ExecutionContext
 import nl.avisi.kotlinwebtest.TestCase
 import nl.avisi.kotlinwebtest.TestConfiguration
 import nl.avisi.kotlinwebtest.http.HttpMethod
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
+import org.junit.*
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import kotlin.test.assertNull
@@ -16,16 +14,18 @@ import kotlin.test.assertTrue
 class RestExecutorTest {
     companion object {
         private lateinit var server: RestServer
-    }
 
-    @Before
-    fun setUp() {
-        server = RestServer()
-    }
+        @BeforeClass
+        @JvmStatic
+        fun setUp() {
+            server = RestServer()
+        }
 
-    @After
-    fun tearDown() {
-        server.close()
+        @AfterClass
+        @JvmStatic
+        fun tearDown() {
+            server.close()
+        }
     }
 
     @Test
