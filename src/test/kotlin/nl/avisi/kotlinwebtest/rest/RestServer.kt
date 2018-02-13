@@ -2,6 +2,7 @@ package nl.avisi.kotlinwebtest.rest
 
 import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
+import org.apache.http.HttpStatus
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.bootstrap.HttpServer
@@ -25,6 +26,7 @@ class RestServer : AutoCloseable {
                 .setListenerPort(port)
                 .setExceptionLogger { log.error("An error occurred", it) }
                 .registerHandler("/rest/*", Handler(body))
+                .registerHandler("/no-content/*", NoContentHandler())
                 .create()
                 .apply {
                     start()
@@ -38,6 +40,12 @@ class RestServer : AutoCloseable {
     private inner class Handler(private val body: String) : HttpRequestHandler {
         override fun handle(request: HttpRequest, response: HttpResponse, context: HttpContext) {
             response.entity = StringEntity(body, ContentType.APPLICATION_JSON.withCharset(Charsets.UTF_8))
+        }
+    }
+
+    private inner class NoContentHandler : HttpRequestHandler {
+        override fun handle(request: HttpRequest, response: HttpResponse, context: HttpContext) {
+            response.setStatusCode(HttpStatus.SC_NO_CONTENT)
         }
     }
 

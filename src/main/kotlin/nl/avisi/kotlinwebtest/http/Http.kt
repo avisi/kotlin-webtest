@@ -44,13 +44,13 @@ interface HttpStepResponse : StepResponse {
     val http: HttpResponse?
 }
 
-open class HttpResponse(val statusCode: Int, data: ByteArray, headers: List<HttpHeader>) : HttpResponsePart(data, headers)
+open class HttpResponse(val statusCode: Int, data: ByteArray?, headers: List<HttpHeader>) : HttpResponsePart(data, headers)
 
-open class HttpResponsePart(val data: ByteArray,
+open class HttpResponsePart(val data: ByteArray?,
                             val headers: List<HttpHeader>) {
-    val dataAsString: String
+    val dataAsString: String?
         get() =
-            data.toString(Charsets.UTF_8)
+            data?.toString(Charsets.UTF_8)
 
     val contentType: String?
         get() = headers.firstOrNull { it.name.equals(HttpHeaders.CONTENT_TYPE.headerName, true) }?.value

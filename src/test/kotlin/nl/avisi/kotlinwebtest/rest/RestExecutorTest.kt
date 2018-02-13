@@ -10,6 +10,7 @@ import org.junit.Before
 import org.junit.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class RestExecutorTest {
@@ -37,6 +38,18 @@ class RestExecutorTest {
         val response = RestExecutor().execute(step, ExecutionContext(TestConfiguration())) as RestStepResponse
         assertTrue { response.success }
         JSONAssert.assertEquals(server.body, response.body,  JSONCompareMode.STRICT)
+    }
+
+    @Test
+    fun executeNoContent() {
+        val step = RestTestStep(TestCase("Json")).apply {
+            endpoint = Endpoint("Rest", "http://localhost:${server.port}/no-content")
+            request.method(HttpMethod.GET)
+            request.path("/")
+        }
+        val response = RestExecutor().execute(step, ExecutionContext(TestConfiguration())) as RestStepResponse
+        assertTrue { response.success }
+        assertNull(response.body)
     }
 
     @Test
