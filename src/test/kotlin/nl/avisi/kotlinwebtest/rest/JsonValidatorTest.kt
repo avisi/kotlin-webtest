@@ -26,6 +26,19 @@ class JsonValidatorTest {
     }
 
     @Test
+    fun validateWildcard() {
+        val expected = """
+            {
+                "foo": "**"
+            }
+            """
+        val actual = "{\"foo\": \"wildcard-matches\"}"
+        val validator = JsonValidator(CompareMode.STRICT, ConstantExpression(expected))
+        val result = validator.validate(context, request(), response(actual))
+        assertTrue(result.message) { result.success }
+    }
+
+    @Test
     fun validateInvalidJson() {
         val expected = """
             {
@@ -64,43 +77,5 @@ class JsonValidatorTest {
         assertTrue(result.message) { result.success }
     }
 
-    @Test
-    fun testJsonPath() {
-        val actual = """
-            [
-                {
-                    "foo": {
-                        "bar": [
-                            2018,
-                            29,
-                            10
-                        ]
-                    }
-                }
-            ]
-            """
-        val validator = JsonPathValidator("$[0].foo.bar", listOf(2018, 29, 10))
-        val result = validator.validate(context, request(), response(actual))
-        assertTrue(result.message) { result.success }
-    }
 
-    @Test
-    fun testIllegalJsonPath() {
-        val actual = """
-            [
-                {
-                    "foo": {
-                        "bar": [
-                            2018,
-                            29,
-                            10
-                        ]
-                    }
-                }
-            ]
-            """
-        val validator = JsonPathValidator("--", listOf(2018, 29, 10))
-        val result = validator.validate(context, request(), response(actual))
-        assertFalse(result.message) { result.success }
-    }
 }

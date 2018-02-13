@@ -7,13 +7,10 @@ import nl.avisi.kotlinwebtest.Validator
 import nl.avisi.kotlinwebtest.ValidatorResult
 import nl.avisi.kotlinwebtest.expressions.Expression
 import nl.avisi.kotlinwebtest.expressions.ExpressionEvaluator
-import nl.avisi.kotlinwebtest.soap.XPathValidator
+import nl.avisi.kotlinwebtest.json.WildcardTokenComparator
 import org.json.JSONException
-import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONCompare
 import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.RegularExpressionValueMatcher
-import org.skyscreamer.jsonassert.comparator.CustomComparator
 import org.slf4j.LoggerFactory
 
 enum class CompareMode {
@@ -38,18 +35,9 @@ class JsonValidator(val mode: CompareMode, var value: Expression? = null) : Vali
 
     override fun validate(executionContext: ExecutionContext, request: RestStepRequest, response: RestStepResponse): ValidatorResult {
         val expectedValue = value?.let { ExpressionEvaluator(executionContext).evaluate(it) } ?: error("JsonValidator is missing expected value")
-
-        if (response.body == null) return failure("JSON failure, no match found for $expectedValue")
-        else {
-            try {
-                JSONCompare.compareJSON(expectedValue, response.body, mode.getJsonCompareMode())
-                        .takeUnless { it.passed() }
-                        ?.let { return failure("JSON failure:\r\n${it.message}") }
-                        ?: return success()
-            } catch (e: JSONException) {
-                log.warn("Error parsing JSON: $expectedValue", e)
-                return failure("JSON failure, no valid JSON supplied")
-            }
+        return when (response.body) {
+            null -> failure("JSON failure, no match found for $expectedValue")
+            else -> assertJson(expectedValue, response, mode)
         }
     }
 }
@@ -78,3 +66,14 @@ class JsonPathValidator(private val jsonPath: String, private val expectedValue:
     }
 }
 
+private fun Validator<*, *>.assertJson(expectedValue: String, response: RestStepResponse, mode: CompareMode): ValidatorResult {
+    try {
+        JSONCompare.compareJSON(expectedValue, response.body, WildcardTokenComparator(mode.getJsonCompareMode()))
+                .takeUnless { it.passed() }
+                ?.let { return failure("JSON failure:\r\n${it.message}") }
+                ?: return success()
+    } catch (e: JSONException) {
+        LoggerFactory.getLogger(javaClass).warn("Error parsing JSON: $expectedValue", e)
+        return failure("JSON failure, no valid JSON supplied")
+    }
+}

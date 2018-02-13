@@ -7,12 +7,7 @@ package nl.avisi.kotlinwebtest.rest
 import nl.avisi.kotlinwebtest.*
 import nl.avisi.kotlinwebtest.expressions.ExpressionEvaluator
 import nl.avisi.kotlinwebtest.expressions.findExpressions
-import nl.avisi.kotlinwebtest.http.HttpHeader
-import nl.avisi.kotlinwebtest.http.HttpMethod
-import nl.avisi.kotlinwebtest.http.HttpRequest
-import nl.avisi.kotlinwebtest.http.HttpResponse
-import nl.avisi.kotlinwebtest.http.HttpStepResponse
-import nl.avisi.kotlinwebtest.http.getHttpClient
+import nl.avisi.kotlinwebtest.http.*
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ContentType
@@ -82,13 +77,12 @@ class RestExecutor : Executor<RestTestStep> {
                 request.headers.forEach { (name, value) -> httpRequest.setHeader(name, value) }
                 log.info("Sending request to {}: {}", httpRequest.uri, requestData)
                 val response = it.execute(httpRequest)
-                response.use {
-                    response.entity.content.use {
-                        httpResponse = HttpResponse(
-                                statusCode = response.statusLine.statusCode,
-                                data = it.readBytes(),
-                                headers = response.allHeaders.map { HttpHeader(it.name, it.value) })
-                    }
+                httpResponse = response.use {
+                    val responseBody = response.entity?.let { it.content.use { it.readBytes() } }
+                    HttpResponse(
+                            statusCode = response.statusLine.statusCode,
+                            data = responseBody,
+                            headers = response.allHeaders.map { HttpHeader(it.name, it.value) })
                 }
             }
         } catch (e: IOException) {
