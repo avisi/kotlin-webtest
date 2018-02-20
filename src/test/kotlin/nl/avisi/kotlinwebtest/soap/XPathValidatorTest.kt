@@ -32,7 +32,7 @@ class XPathValidatorTest {
     }
 
     @Test
-    fun validate() {
+    fun validateWithNamespace() {
         val xml = XmlContext().apply { namespaces.add(NamespaceDeclaration("input_b", "b")) }
         val context = ExecutionContext(TestConfiguration(xml))
         val input = """
@@ -81,5 +81,22 @@ class XPathValidatorTest {
         val validator = XPathValidator("//foo:foo", ConstantExpression(expected))
         val result = validator.validate(context, request(), response(input))
         assertFalse(result.message) { result.success }
+    }
+
+    @Test
+    fun validateXPathWithBoundNamespace() {
+        val context = ExecutionContext(TestConfiguration(XmlContext(mutableListOf(NamespaceDeclaration("foo", "bar")))))
+        val input = """
+            <root xmlns="bar">
+                <foo>
+                    <c>Hello</c>
+                </foo>
+            </root>
+        """.trimIndent()
+        val expected = """<foo:c>Hello</foo:c>"""
+
+        val validator = XPathValidator("//foo:c", ConstantExpression(expected))
+        val result = validator.validate(context, request(), response(input))
+        assertTrue(result.message) { result.success }
     }
 }

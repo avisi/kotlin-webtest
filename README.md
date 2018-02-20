@@ -8,21 +8,30 @@ I might even fix some bugs if you ask nicely (be sure to supply logs, steps to r
 This implementation is not intended to be feature-complete but one which is just enough to test a spec-compliant SOAP-service, but nothing more.
 This means it might fail to detect an in theory malformed/invalid SOAP-response which parses OK.
 
-Validators: HTTP Status, HTTP responses, SOAP faults, XPath, XSD
+Validators:
+- HTTP Status
+- HTTP responses
+- SOAP faults
+- XPath, XSD
 
 ## REST ##
+REST services can be tested.
 
-Validators: HTTP Status, HTTP responses, Json Path
+Validators:
+- HTTP Status
+- HTTP responses
+- JSON Path
+
 
 # TODO #
 The following stuff (and much more) needs to be done:
 - Sending MTOM (receiving works)
-- SwA support (only MTOM/XOP is supported right now)
+- Soap with Attachments support (only MTOM/XOP is supported right now)
 - General cleanup
 - Improve logging (human-friendly v.s. technical log?)
 - More test coverage. This stuff slowly becomes something a poor soul actually would be using, so some additional unit tests would be nice.
 - Everything where your find // TODO in the code
 - Push to Maven Central (when all of the above has been fixed)
-- Getting the default namespace in XPath validators to work
 - JDBC support
 - Parsing WSDLs
+- Charsets other than UTF-8 (we default to UTF-8, which might not always work)
