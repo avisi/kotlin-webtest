@@ -9,25 +9,9 @@ import nl.avisi.kotlinwebtest.ExecutionContext
 import nl.avisi.kotlinwebtest.TestCase
 import nl.avisi.kotlinwebtest.TestConfiguration
 import nl.avisi.kotlinwebtest.xml.toXml
-import org.apache.http.HttpEntityEnclosingRequest
-import org.apache.http.HttpRequest
-import org.apache.http.HttpResponse
-import org.apache.http.entity.ContentType
-import org.apache.http.entity.StringEntity
-import org.apache.http.entity.mime.FormBodyPartBuilder
-import org.apache.http.entity.mime.HttpMultipartMode
-import org.apache.http.entity.mime.MultipartEntityBuilder
-import org.apache.http.entity.mime.content.StringBody
-import org.apache.http.impl.bootstrap.HttpServer
-import org.apache.http.impl.bootstrap.ServerBootstrap
-import org.apache.http.message.BasicNameValuePair
-import org.apache.http.protocol.HttpContext
-import org.apache.http.protocol.HttpRequestHandler
-import org.apache.http.util.EntityUtils
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.slf4j.LoggerFactory
 import org.xmlunit.builder.DiffBuilder
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -79,7 +63,7 @@ class SoapExecutorTest {
         assertTrue { response.success }
         assertTrue { response.mtom }
         assertFalse {
-            DiffBuilder.compare(server.simpleResponseText)
+            DiffBuilder.compare(server.mtomResponseText)
                     .withTest(response.document.toXml())
                     .ignoreComments()
                     .ignoreWhitespace()

@@ -21,8 +21,6 @@ class HttpHeader(val name: String, val value: String) {
 
     override fun toString(): String =
             "$name: $value"
-
-
 }
 
 enum class HttpHeaders(val headerName: String) {

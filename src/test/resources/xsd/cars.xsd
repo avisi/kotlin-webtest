@@ -6,9 +6,23 @@
     <xs:import namespace="webtest::vehicles::parts" schemaLocation="parts.xsd"/>
     <xs:element name="car">
         <xs:complexType>
-            <xs:sequence>
+            <xs:all>
                 <xs:element name="wheel" type="parts:wheel"/>
-            </xs:sequence>
+                <xs:element name="prices" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element maxOccurs="unbounded" type="price" name="price"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="bijlage" type="xs:base64Binary" minOccurs="0"/>
+                <xs:element name="time1" type="xs:dateTime" minOccurs="0"/>
+                <xs:element name="time2" type="xs:dateTime" minOccurs="0"/>
+            </xs:all>
         </xs:complexType>
     </xs:element>
+
+    <xs:simpleType name="price">
+        <xs:restriction base="xs:positiveInteger"/>
+    </xs:simpleType>
 </xs:schema>

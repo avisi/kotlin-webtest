@@ -12,14 +12,14 @@ import org.slf4j.LoggerFactory
 
 class PropertyExecutor : Executor<PropertyTestStep> {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(PropertyExecutor::class.java)
+    }
+
     override fun execute(step: PropertyTestStep, executionContext: ExecutionContext): StepResponse {
         val result = ExpressionEvaluator(executionContext).evaluate(step.request.expression)
         log.info("Evaluated property '${step.request.name}' to: $result")
         executionContext.properties[step.request.name] = result
         return PropertyResponse()
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(PropertyExecutor::class.java)
     }
 }

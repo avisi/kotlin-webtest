@@ -1,0 +1,13 @@
+
+@UUID
+Content-Type: application/xop+xml; charset=UTF-8; type="text/xml"
+Content-Transfer-Encoding: 8bit
+Content-ID: <rootpart@soapui.org>
+
+@SOAP
+@UUID
+Content-Type: @CONTENT-TYPE
+Content-Transfer-Encoding: binary
+Content-ID: <@CONTENT-ID>
+Content-Disposition: attachment; filename=@FILENAME
+

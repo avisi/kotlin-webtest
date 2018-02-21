@@ -25,7 +25,7 @@ class SoapResponseValidatorTest {
     @Test
     fun validate() {
         val stepRequest = SoapStepRequest(RawSoapRequestBody("test"))
-        val response = HttpResponse(200, "".toByteArray(), listOf(HttpHeader("Content-Type", "text/xml; charset=UTF-8")))
+        val response = HttpResponse(200, emptyResponse, listOf(HttpHeader("Content-Type", "text/xml; charset=UTF-8")))
         val stepResponse = SoapStepResponse(response, Endpoint(null, "http://test"), true)
         val actual = SoapResponseValidator().validate(ExecutionContext(TestConfiguration()), stepRequest, stepResponse)
         assertTrue(actual.success)

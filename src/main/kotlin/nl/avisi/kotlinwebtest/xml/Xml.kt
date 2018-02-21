@@ -10,6 +10,7 @@ import java.io.InputStream
 import java.io.StringWriter
 import javax.xml.XMLConstants
 import javax.xml.namespace.NamespaceContext
+import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
@@ -51,17 +52,44 @@ class SimpleNamespaceContext(namespaces: List<NamespaceDeclaration>) : Namespace
             }
 }
 
+fun Document.evaluate(xpath: String, namespaces: List<NamespaceDeclaration>, type: XPathType = XPathType.String): EvaluateResult? {
+    try {
+        val expression = XPathFactory.newInstance()
+                .newXPath()
+                .apply {
+                    namespaceContext = SimpleNamespaceContext(namespaces)
+                }
+                .compile(xpath) ?: return null
+        return when (type) {
+            XPathType.Node -> NodeValue(expression.evaluate(this, type.getXpathtype()) as? Node ?: return null)
+            XPathType.Number -> NumberValue(expression.evaluate(this, type.getXpathtype()) as? Double ?: return null)
+            else -> StringValue(expression.evaluate(this, type.getXpathtype()) as? String ?: return null)
+        }
+    } catch (e: Exception) {
+        return ErrorValue(e.message!!)
+    }
 
-fun Document.evaluate(xpath: String, namespaces: List<NamespaceDeclaration>): Node? {
-    val expression = XPathFactory.newInstance()
-            .newXPath()
-            .apply {
-                namespaceContext = SimpleNamespaceContext(namespaces)
-            }
-            .compile(xpath)
-    return expression.evaluate(this, XPathConstants.NODE) as? Node
 }
 
+sealed class EvaluateResult(open val value: String)
+class NumberValue(val number: Double) : EvaluateResult("")
+class NodeValue(val node: Node) : EvaluateResult("")
+class StringValue(value: String) : EvaluateResult(value)
+class ErrorValue(value: String) : EvaluateResult(value)
+
+
+enum class XPathType {
+    Node,
+    Number,
+    String;
+
+    internal fun getXpathtype(): QName =
+            when (this) {
+                Node -> XPathConstants.NODE
+                Number -> XPathConstants.NUMBER
+                String -> XPathConstants.STRING
+            }
+}
 
 fun toXml(node: Node): String {
     val transformerFactory = TransformerFactory.newInstance()
@@ -89,12 +117,18 @@ fun fragmentToDocument(xmlFragment: String, namespaces: List<NamespaceDeclaratio
             toDocument(xmlFragment)
 
 
-fun toDocument(xml: InputStream, namespaceAware: Boolean = true): Document =
+fun toDocument(xml: InputStream, namespaceAware: Boolean = true): Document {
+    return try {
         DocumentBuilderFactory
                 .newInstance()
                 .apply { isNamespaceAware = namespaceAware }
                 .newDocumentBuilder()
                 .parse(xml)
+    } catch (e: Exception) {
+        DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
+    }
+}
+
 
 fun toDocument(xml: String, namespaceAware: Boolean = true): Document =
         toDocument(xml.byteInputStream(), namespaceAware)

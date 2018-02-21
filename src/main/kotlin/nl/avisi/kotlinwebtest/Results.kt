@@ -12,7 +12,7 @@ class TestResult(val test: TestCase, val steps: List<StepResult>) : Result {
     override val message: String? = null
 }
 
-class StepResult(val step: TestStep<*, *>, val validationResults: List<ValidatorResult>, val requestSuccess: Boolean) : Result {
+class StepResult(val step: TestStep<*, *>, val validationResults: List<ValidatorResult>, val afterResults: List<AfterResult>, val requestSuccess: Boolean) : Result {
     override val success: Boolean
         get() = requestSuccess && validationResults.all { it is SuccessValidatorResult }
     override val message: String? = null
@@ -44,6 +44,12 @@ class TextResultWriter(private val writer: Writer, private val newline: String =
                 write("[ ${it.successText} ] - Step: $stepName")
                 it.validationResults.forEach {
                     write("[ ${it.successText} ]  * Validator: ${it.validator.javaClass.simpleName}")
+                    if (it.message != null) {
+                        write("            ${it.message}")
+                    }
+                }
+                it.afterResults.forEach {
+                    write("[ ${it.successText} ]  * After: ${it.validator.javaClass.simpleName}")
                     if (it.message != null) {
                         write("            ${it.message}")
                     }

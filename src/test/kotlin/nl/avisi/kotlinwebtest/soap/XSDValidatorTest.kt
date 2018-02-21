@@ -6,13 +6,15 @@ package nl.avisi.kotlinwebtest.soap
 
 import nl.avisi.kotlinwebtest.ExecutionContext
 import nl.avisi.kotlinwebtest.TestConfiguration
+import nl.avisi.kotlinwebtest.xml.NamespaceDeclaration
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class XSDValidatorTest {
+class
+XSDValidatorTest {
     @Test
     fun validateMissingSoapBody() {
         val input = """<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" />"""
@@ -57,6 +59,7 @@ class XSDValidatorTest {
 
     private fun testFailure(input: String, message: String) {
         val context = ExecutionContext(TestConfiguration())
+        context.configuration.xml.namespaces.add(NamespaceDeclaration("soap", "http://schemas.xmlsoap.org/soap/envelope/"))
         val validator = XSDValidator()
         val actual = validator.validate(context, request(), response(input))
         assertFalse(actual.success)
@@ -65,6 +68,7 @@ class XSDValidatorTest {
 
     private fun testSuccess(input: String, schemas: List<String> = listOf()) {
         val context = ExecutionContext(TestConfiguration())
+        context.configuration.xml.namespaces.add(NamespaceDeclaration("soap", "http://schemas.xmlsoap.org/soap/envelope/"))
         val validator = XSDValidator()
         val response = response(input)
         response.endpoint[Schemas::class] = Schemas(schemas.map { Thread.currentThread().contextClassLoader.getResource(it) }.map(::Schema))

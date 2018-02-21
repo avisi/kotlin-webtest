@@ -8,6 +8,7 @@ import nl.avisi.kotlinwebtest.ExecutionContext
 import nl.avisi.kotlinwebtest.TestConfiguration
 import nl.avisi.kotlinwebtest.expressions.ConstantExpression
 import nl.avisi.kotlinwebtest.xml.NamespaceDeclaration
+import nl.avisi.kotlinwebtest.xml.XPathType
 import nl.avisi.kotlinwebtest.xml.XmlContext
 import org.junit.Test
 import kotlin.test.assertFalse
@@ -26,7 +27,7 @@ class XPathValidatorTest {
         """.trimIndent()
         val expected = "<foo><bar>Hello</bar></foo>"
 
-        val validator = XPathValidator("//foo", ConstantExpression(expected))
+        val validator = XPathValidator("//foo", ConstantExpression(expected), XPathType.Node)
         val result = validator.validate(context, request(), response(input))
         assertTrue(result.message) { result.success }
     }
@@ -44,7 +45,7 @@ class XPathValidatorTest {
         """.trimIndent()
         val expected = """<foo xmlns="b"><bar xmlns="c">Hello</bar></foo>"""
 
-        val validator = XPathValidator("//input_b:foo", ConstantExpression(expected))
+        val validator = XPathValidator("//input_b:foo", ConstantExpression(expected), XPathType.Node)
         val result = validator.validate(context, request(), response(input))
         assertTrue(result.message) { result.success }
     }
@@ -61,7 +62,7 @@ class XPathValidatorTest {
         """.trimIndent()
         val expected = """<c>Hello</c>"""
 
-        val validator = XPathValidator("//foo", ConstantExpression(expected))
+        val validator = XPathValidator("//foo", ConstantExpression(expected), XPathType.Node)
         val result = validator.validate(context, request(), response(input))
         assertFalse(result.message) { result.success }
     }
@@ -78,7 +79,7 @@ class XPathValidatorTest {
         """.trimIndent()
         val expected = """<c>Hello</c>"""
 
-        val validator = XPathValidator("//foo:foo", ConstantExpression(expected))
+        val validator = XPathValidator("//foo:foo", ConstantExpression(expected), XPathType.Node)
         val result = validator.validate(context, request(), response(input))
         assertFalse(result.message) { result.success }
     }
@@ -95,7 +96,7 @@ class XPathValidatorTest {
         """.trimIndent()
         val expected = """<foo:c>Hello</foo:c>"""
 
-        val validator = XPathValidator("//foo:c", ConstantExpression(expected))
+        val validator = XPathValidator("//foo:c", ConstantExpression(expected), XPathType.Node)
         val result = validator.validate(context, request(), response(input))
         assertTrue(result.message) { result.success }
     }
