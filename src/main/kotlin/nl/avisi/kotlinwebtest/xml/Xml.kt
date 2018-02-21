@@ -77,15 +77,27 @@ fun toXml(node: Node): String {
 fun Document.toXml(): String =
         toXml(this)
 
-fun toDocument(xml: InputStream): Document =
+fun fragmentToDocument(xmlFragment: String, namespaces: List<NamespaceDeclaration>): Document =
+        if (namespaces.isNotEmpty())
+            toDocument(xmlFragment, false)
+                    .apply {
+                        namespaces.forEach({ namespace -> documentElement.setAttribute("xmlns:${namespace.prefix}", namespace.namespace) })
+                    }
+                    .toXml()
+                    .let { toDocument(it) }
+        else
+            toDocument(xmlFragment)
+
+
+fun toDocument(xml: InputStream, namespaceAware: Boolean = true): Document =
         DocumentBuilderFactory
                 .newInstance()
-                .apply { isNamespaceAware = true }
+                .apply { isNamespaceAware = namespaceAware }
                 .newDocumentBuilder()
                 .parse(xml)
 
-fun toDocument(xml: String): Document =
-        toDocument(xml.byteInputStream())
+fun toDocument(xml: String, namespaceAware: Boolean = true): Document =
+        toDocument(xml.byteInputStream(), namespaceAware)
 
 fun String.asPrettyXml(): String =
         toXml(toDocument(this))

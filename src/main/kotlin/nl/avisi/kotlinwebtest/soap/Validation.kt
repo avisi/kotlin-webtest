@@ -9,6 +9,7 @@ import nl.avisi.kotlinwebtest.expressions.Expression
 import nl.avisi.kotlinwebtest.expressions.ExpressionEvaluator
 import nl.avisi.kotlinwebtest.xml.NamespaceDeclaration
 import nl.avisi.kotlinwebtest.xml.evaluate
+import nl.avisi.kotlinwebtest.xml.fragmentToDocument
 import nl.avisi.kotlinwebtest.xml.toXml
 import org.slf4j.LoggerFactory
 import org.w3c.dom.Node
@@ -140,7 +141,7 @@ class XPathValidator(val xpath: String, var value: Expression? = null) : Validat
     }
 
     private fun compare(expected: String, actual: Node, namespaces: List<NamespaceDeclaration>): String? =
-            DiffBuilder.compare(expected)
+            DiffBuilder.compare(fragmentToDocument(expected, namespaces))
                     .withTest(actual)
                     .ignoreComments()
                     .ignoreWhitespace()
