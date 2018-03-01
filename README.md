@@ -10,6 +10,7 @@ This means it might fail to detect an in theory malformed/invalid SOAP-response 
 
 Validators:
 - HTTP Status
+- HTTP Headers
 - HTTP responses
 - SOAP faults
 - XPath, XSD
@@ -19,9 +20,9 @@ REST services can be tested.
 
 Validators:
 - HTTP Status
+- HTTP Headers
 - HTTP responses
 - JSON Path
-
 
 # TODO #
 The following stuff (and much more) needs to be done:
