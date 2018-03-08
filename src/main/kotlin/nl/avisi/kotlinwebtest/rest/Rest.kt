@@ -75,7 +75,7 @@ class RestExecutor : Executor<RestTestStep> {
                 }
                 configuration.defaults.headers.forEach { (name, value) -> httpRequest.setHeader(name, value) }
                 request.headers.forEach { (name, value) -> httpRequest.setHeader(name, value) }
-                log.info("Sending request to {}: {}", httpRequest.uri, requestData)
+                log.info("Sending {} request to {}{}", httpRequest.method, httpRequest.uri, requestData?.let { " with data: $it" } ?: "")
                 val response = it.execute(httpRequest)
                 httpResponse = response.use {
                     val responseBody = response.entity?.let { it.content.use { it.readBytes() } }
@@ -93,7 +93,11 @@ class RestExecutor : Executor<RestTestStep> {
                 }
             }
         }
-        log.info("Response: ${httpResponse?.data?.let { String(it) }}")
+        val responseAsString = httpResponse?.data?.let { String(it) }
+        when (responseAsString) {
+            null -> log.info("No response.")
+            else -> log.info("Response: $responseAsString")
+        }
         return RestStepResponse(httpResponse, true).also {
             with(executionContext) {
                 previousRequest = request
