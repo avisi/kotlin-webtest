@@ -14,6 +14,7 @@ Validators:
 - HTTP responses
 - SOAP faults
 - XPath, XSD
+- XQUERY
 
 ## REST ##
 REST services can be tested.
@@ -24,15 +25,21 @@ Validators:
 - HTTP responses
 - JSON Path
 
+## JDBC ##
+JDBC services can be tested.
+
+Validators:
+- Colomn checks
+- Boolean checks
+- Row Count
+
+
 # TODO #
 The following stuff (and much more) needs to be done:
-- Sending MTOM (receiving works)
-- Soap with Attachments support (only MTOM/XOP is supported right now)
 - General cleanup
 - Improve logging (human-friendly v.s. technical log?)
 - More test coverage. This stuff slowly becomes something a poor soul actually would be using, so some additional unit tests would be nice.
 - Everything where your find // TODO in the code
 - Push to Maven Central (when all of the above has been fixed)
-- JDBC support
 - Parsing WSDLs
 - Charsets other than UTF-8 (we default to UTF-8, which might not always work)

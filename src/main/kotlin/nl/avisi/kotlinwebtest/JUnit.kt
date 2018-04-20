@@ -4,6 +4,10 @@
  */
 package nl.avisi.kotlinwebtest
 
+import nl.avisi.kotlinwebtest.delay.DelayExecutor
+import nl.avisi.kotlinwebtest.delay.DelayTestStep
+import nl.avisi.kotlinwebtest.jdbc.JdbcExecutor
+import nl.avisi.kotlinwebtest.jdbc.JdbcTestStep
 import nl.avisi.kotlinwebtest.properties.PropertyExecutor
 import nl.avisi.kotlinwebtest.properties.PropertyTestStep
 import nl.avisi.kotlinwebtest.rest.RestExecutor
@@ -27,6 +31,8 @@ abstract class WebTest {
             put(SoapTestStep::class.java, SoapExecutor())
             put(PropertyTestStep::class.java, PropertyExecutor())
             put(RestTestStep::class.java, RestExecutor())
+            put(JdbcTestStep::class.java, JdbcExecutor())
+            put(DelayTestStep::class.java, DelayExecutor())
         }
         configure()
     }
@@ -67,9 +73,10 @@ abstract class WebTest {
         val response = (executor as Executor<StepType>).execute(step, context)
         return if (response.success) {
             val validationResults = step.validators.map { it.validate(context, step.request, response) }
-            StepResult(step, validationResults, true)
+            val afterResults = step.afterwards.map { it.afterwards(context, step.request, response) }
+            StepResult(step, validationResults, afterResults, true)
         } else {
-            StepResult(step, listOf(), false)
+            StepResult(step, emptyList(), emptyList(), false)
         }
     }
 

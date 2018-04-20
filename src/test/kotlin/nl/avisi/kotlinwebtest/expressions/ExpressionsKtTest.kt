@@ -11,7 +11,7 @@ class ExpressionsKtTest {
     @Test
     fun findExpressions() {
         val input = "First #{first} second #{SECOND}"
-        val actual = findExpressions(input)
+        val actual = input.findExpressions()
         assertEquals(actual.size, 2)
         assertEquals("#{first}", actual[0].first)
         assertEquals(PropertyExpression("first"), actual[0].second)
@@ -22,21 +22,21 @@ class ExpressionsKtTest {
     @Test
     fun findExpressions_NoneFound() {
         val input = "First second"
-        val actual = findExpressions(input)
+        val actual = input.findExpressions()
         assertEquals(actual.size, 0)
     }
 
     @Test
     fun findExpressions_UnmatchedBraces() {
         val input = "First #{ second"
-        val actual = findExpressions(input)
+        val actual = input.findExpressions()
         assertEquals(actual.size, 0)
     }
 
     @Test
     fun findExpressions_PropertySyntaxIncorrect() {
         val input = "First #{     }"
-        val actual = findExpressions(input)
+        val actual = input.findExpressions()
         assertEquals(actual.size, 0)
     }
 }

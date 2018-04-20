@@ -4,24 +4,39 @@
  */
 package nl.avisi.kotlinwebtest.rest
 
-import nl.avisi.kotlinwebtest.*
-import nl.avisi.kotlinwebtest.expressions.ExpressionEvaluator
-import nl.avisi.kotlinwebtest.expressions.findExpressions
-import nl.avisi.kotlinwebtest.http.*
+import nl.avisi.kotlinwebtest.Endpoint
+import nl.avisi.kotlinwebtest.ExecutionContext
+import nl.avisi.kotlinwebtest.Executor
+import nl.avisi.kotlinwebtest.StepResponse
+import nl.avisi.kotlinwebtest.TestCase
+import nl.avisi.kotlinwebtest.TestStep
+import nl.avisi.kotlinwebtest.http.HttpHeader
+import nl.avisi.kotlinwebtest.http.HttpMethod
+import nl.avisi.kotlinwebtest.http.HttpRequest
+import nl.avisi.kotlinwebtest.http.HttpResponse
+import nl.avisi.kotlinwebtest.http.HttpStepResponse
+import nl.avisi.kotlinwebtest.http.getHttpClient
+import nl.avisi.kotlinwebtest.interpolateExpressions
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ContentType
+import org.apache.http.entity.FileEntity
 import org.apache.http.entity.StringEntity
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 
-class RestStepRequest(var body: String? = null) : StepRequest, HttpRequest() {
+class RestStepRequest(var body: String = "", var file: File? = null) : HttpRequest() {
 
     lateinit var testStep: RestTestStep
 
     infix fun text(data: String) {
         body = data
+    }
+
+    infix fun attachment(data: String) {
+        file = File((Thread.currentThread().contextClassLoader.getResource(data) ?: error("File can not be found")).file)
     }
 
     override infix fun endpoint(endpoint: Endpoint) {
@@ -54,22 +69,31 @@ class RestTestStep(testCase: TestCase) : TestStep<RestStepRequest, RestStepRespo
 
 class RestExecutor : Executor<RestTestStep> {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(RestExecutor::class.java)
+    }
+
     override fun execute(step: RestTestStep, executionContext: ExecutionContext): StepResponse {
+        val stepName = if (step.name.isNullOrBlank()) step.javaClass.simpleName else "${step.name} (${step.javaClass.simpleName})"
+        log.info("Step: $stepName")
         val request = step.request
-        val requestData = request.body
-                ?.let { interpolateExpressions(it, executionContext) }
+        val requestData: String? = request.body.let { interpolateExpressions(it, executionContext) }
         val configuration = executionContext.configuration[RestTestConfiguration::class]
         val endpoint = step.resolveEndpoint(configuration) ?: error("No endpoint configured for REST test step.")
 
-        val url = step.resolveUrl(endpoint)
+        val url = step.resolveUrl(endpoint)?.let { interpolateExpressions(it, executionContext) }
         var httpResponse: HttpResponse? = null
         try {
             getHttpClient(endpoint.credentials ?: request.credentials).use { it ->
                 val httpRequest = when (request.method) {
                     HttpMethod.GET -> HttpGet(url)
                     HttpMethod.POST -> HttpPost(url).also {
-                        requestData ?: error("No body configured for REST test step.")
-                        it.entity = StringEntity(requestData, ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8))
+                        if (request.file == null) {
+                            requestData ?: error("No body configured for REST test step.")
+                            it.entity = StringEntity(requestData, ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8))
+                        } else {
+                            it.entity = FileEntity(request.file)
+                        }
                     }
                     else -> error("Request method not supported: ${request.method}")
                 }
@@ -104,21 +128,6 @@ class RestExecutor : Executor<RestTestStep> {
                 previousResponse = it
             }
         }
-    }
-
-    private fun interpolateExpressions(text: String, executionContext: ExecutionContext): String {
-        val evaluator = ExpressionEvaluator(executionContext)
-        var interpolatedRequestData = text
-        findExpressions(text).forEach {
-            val (token, expression) = it
-            val value = evaluator.evaluate(expression) ?: "".also { log.warn("Property evaluated to empty string: $token") }
-            interpolatedRequestData = interpolatedRequestData.replace(token, value)
-        }
-        return interpolatedRequestData
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(RestExecutor::class.java)
     }
 }
 

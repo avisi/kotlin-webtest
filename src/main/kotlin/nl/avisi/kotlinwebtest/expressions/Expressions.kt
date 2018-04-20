@@ -32,12 +32,12 @@ class ExpressionEvaluator(private val executionContext: ExecutionContext) {
             when (expression) {
                 is ConstantExpression -> expression.value
                 is PropertyExpression -> executionContext.properties[expression.name] ?: executionContext.configuration.properties[expression.name]
-                else -> error("Unable to evaluate expression: $expression")
+                else -> error("${this.javaClass.simpleName}: Unable to evaluate expression: $expression")
             }
 }
 
-fun findExpressions(text: String): List<Pair<String, PropertyExpression>> {
-    val matcher = expressionRegex.matcher(text)
+fun String.findExpressions(): List<Pair<String, PropertyExpression>> {
+    val matcher = expressionRegex.matcher(this)
     val matches = mutableListOf<String>()
     while (matcher.find()) {
         matches.add(matcher.group(1))

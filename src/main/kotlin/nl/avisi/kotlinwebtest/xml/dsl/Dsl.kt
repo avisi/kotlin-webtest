@@ -4,14 +4,13 @@
  */
 package nl.avisi.kotlinwebtest.xml.dsl
 
-import nl.avisi.kotlinwebtest.WebTest
 import nl.avisi.kotlinwebtest.TestConfiguration
+import nl.avisi.kotlinwebtest.WebTest
 import nl.avisi.kotlinwebtest.xml.NamespaceDeclaration
 
-fun WebTest.xml(init: XmlSettingsBuilder.() -> Unit) {
-    val builder = XmlSettingsBuilder(testConfiguration)
-    builder.init()
-}
+fun WebTest.xml(init: XmlSettingsBuilder.() -> Unit) =
+        XmlSettingsBuilder(testConfiguration).apply(init)
+
 
 class XmlSettingsBuilder(val configuration: TestConfiguration) {
     val declare: DeclarationBuilder = DeclarationBuilder()

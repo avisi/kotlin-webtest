@@ -1,3 +1,7 @@
+/**
+ * For licensing, see LICENSE.txt
+ * @author Jareau Davies
+ */
 package nl.avisi.kotlinwebtest.http
 
 import nl.avisi.kotlinwebtest.Credentials

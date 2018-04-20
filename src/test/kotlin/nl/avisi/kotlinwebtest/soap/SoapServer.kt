@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory
 
 class SoapServer : AutoCloseable {
     val simpleResponseText: String = readAsString("soap/simple-soap-response.xml")
+    val mtomResponseText: String = readAsString("soap/mtom-soap-response.xml")
     val port = 7543
     private val log = LoggerFactory.getLogger(SoapExecutor::class.java)
     private var server: HttpServer
@@ -32,7 +33,7 @@ class SoapServer : AutoCloseable {
                 .setListenerPort(port)
                 .setExceptionLogger { log.error("An error occurred", it) }
                 .registerHandler("/simple/*", SimpleHandler(simpleResponseText))
-                .registerHandler("/mtom/*", MtomHandler(simpleResponseText))
+                .registerHandler("/mtom/*", MtomHandler(mtomResponseText))
                 .create()
                 .apply {
                     start()
@@ -57,6 +58,7 @@ class SoapServer : AutoCloseable {
                 EntityUtils.consumeQuietly(request.entity)
             }
             val rootContentId = "<root>"
+            val attachmentId = "<test>"
             val multipart = ContentType.create("multipart/related").withParameters(BasicNameValuePair("type", MIMETYPE_SOAPXML),
                     BasicNameValuePair("start", rootContentId),
                     BasicNameValuePair("start-info", MIMETYPE_SOAPXML))
@@ -67,10 +69,18 @@ class SoapServer : AutoCloseable {
                     .setField("Content-Type", ContentType.create("application/xop+xml").withCharset(Charsets.UTF_8).withParameters(BasicNameValuePair("type", MIMETYPE_SOAPXML)).toString())
                     .setField("Content-ID", rootContentId)
                     .build()
+            val attachmentPart = FormBodyPartBuilder.create()
+                    .setName("attachment")
+                    .setBody(StringBody(simpleResponseText, ContentType.TEXT_HTML))
+                    .setField("Content-Transfer-Encoding", "binary")
+                    .setField("Content-Type", "application/xml")
+                    .setField("Content-ID", attachmentId)
+                    .build()
             val entity = MultipartEntityBuilder.create()
                     .setMode(HttpMultipartMode.STRICT) // TODO: Is this right?
                     .setContentType(multipart)
                     .addPart(rootPart)
+                    .addPart(attachmentPart)
                     .build()
             response.entity = entity
 
