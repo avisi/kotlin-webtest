@@ -9,6 +9,7 @@ import nl.avisi.kotlinwebtest.soap.dsl.soap
 import nl.avisi.kotlinwebtest.soap.dsl.validate
 import nl.avisi.kotlinwebtest.xml.XPathType
 import nl.avisi.kotlinwebtest.xml.dsl.xml
+import org.junit.After
 import org.junit.Test
 
 class SoapDslTest : WebTest() {
@@ -27,6 +28,11 @@ class SoapDslTest : WebTest() {
             declare namespace "http://schemas.xmlsoap.org/soap/envelope/" prefixed_as "soap"
             declare namespace "xsd/cars.xsd" prefixed_as "ns1"
         }
+    }
+
+    @After
+    fun tearDown() {
+        server.close()
     }
 
     @Test
@@ -113,6 +119,5 @@ class SoapDslTest : WebTest() {
             }
         }
         execute()
-        server.close()
     }
 }

@@ -46,7 +46,6 @@ import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 
-
 class SoapFaultValidator(var mustContainSoapFault: Boolean) : Validator<SoapStepRequest, SoapStepResponse> {
     override fun validate(executionContext: ExecutionContext, request: SoapStepRequest, response: SoapStepResponse): ValidatorResult {
         val nameSpaces = executionContext.configuration.xml.namespaces
@@ -74,17 +73,17 @@ class XSDValidator : Validator<SoapStepRequest, SoapStepResponse> {
     }
 
     private fun schemaFactory(): SchemaFactory =
-            SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+        SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
 
     private fun createSoapEnvelopeValidator(): javax.xml.validation.Validator =
-            schemaFactory()
-                    .newSchema(URL(SOAP))
-                    .newValidator()
+        schemaFactory()
+            .newSchema(URL(SOAP))
+            .newValidator()
 
     private fun createSoapBodyValidator(sources: List<URL>): javax.xml.validation.Validator =
-            schemaFactory()
-                    .newSchema(sources.map { StreamSource(it.toExternalForm()) }.toTypedArray())
-                    .newValidator()
+        schemaFactory()
+            .newSchema(sources.map { StreamSource(it.toExternalForm()) }.toTypedArray())
+            .newValidator()
 
     override fun validate(executionContext: ExecutionContext, request: SoapStepRequest, response: SoapStepResponse): ValidatorResult {
         SOAP = getSoapUrl(executionContext).namespace
@@ -110,10 +109,10 @@ class XSDValidator : Validator<SoapStepRequest, SoapStepResponse> {
     }
 
     private fun NodeList.forEach(action: (Node) -> Unit) =
-            (0 until this.length)
-                    .asSequence()
-                    .map { this.item(it) }
-                    .forEach { action(it) }
+        (0 until this.length)
+            .asSequence()
+            .map { this.item(it) }
+            .forEach { action(it) }
 }
 
 class SoapResponseValidator : Validator<SoapStepRequest, SoapStepResponse> {
@@ -133,10 +132,10 @@ class SoapTestStep(testCase: TestCase) : TestStep<SoapStepRequest, SoapStepRespo
     }
 
     fun resolveUrl(endpoint: Endpoint): String =
-            endpoint.url.toString() + request.path.orEmpty()
+        endpoint.url.toString() + request.path.orEmpty()
 
     fun resolveEndpoint(configuration: SoapTestConfiguration): Endpoint? =
-            endpoint ?: configuration.defaults.endpoint
+        endpoint ?: configuration.defaults.endpoint
 }
 
 class XPathValidator(val xpath: String, var value: Expression? = null, val type: XPathType = XPathType.String, private val regex: Boolean = false) : Validator<SoapStepRequest, SoapStepResponse> {
@@ -144,7 +143,7 @@ class XPathValidator(val xpath: String, var value: Expression? = null, val type:
     override fun validate(executionContext: ExecutionContext, request: SoapStepRequest, response: SoapStepResponse): ValidatorResult {
         val expectedValue = value.let {
             interpolateExpressions(value?.let { ExpressionEvaluator(executionContext).evaluate(it) }
-                    ?: return failure("XPathValidator is missing expected value or is empty"), executionContext)
+                ?: return failure("XPathValidator is missing expected value or is empty"), executionContext)
         }
         val xpath = xpath.let { interpolateExpressions(it, executionContext) }
         return assertXpath(response, xpath, executionContext, type, expectedValue, regex)
@@ -159,7 +158,6 @@ class ContainsValidator(val string: String) : Validator<SoapStepRequest, SoapSte
         return failure("Contains failure, expected '$string' but not found")
     }
 }
-
 
 class CompareTimeValidator(val first: String, val second: String, val interval: Int, val type: InequalityType) : Validator<SoapStepRequest, SoapStepResponse> {
 
@@ -186,7 +184,7 @@ class CompareTimeValidator(val first: String, val second: String, val interval: 
 
     private fun convertXpathToTimestamp(xpath: String, executionContext: ExecutionContext, response: SoapStepResponse): Date? {
         val result: EvaluateResult = response.document.evaluate(xpath.let { interpolateExpressions(it, executionContext) }, executionContext.configuration.xml.namespaces)
-                ?: return null
+            ?: return null
         return if (result.value.isEmpty() || result is ErrorValue) {
             null
         } else {
@@ -208,18 +206,22 @@ class CompareTimeValidator(val first: String, val second: String, val interval: 
 class AttachmentsCountValidator(private val expectedValue: Int) : Validator<SoapStepRequest, SoapStepResponse> {
 
     override fun validate(executionContext: ExecutionContext, request: SoapStepRequest, response: SoapStepResponse): ValidatorResult {
-        var value = 0
         return when {
             response.http is MultipartHttpResponse -> {
+<<<<<<< Updated upstream
                 response.http.parts.forEach {
                     it.headers.forEach { httpHeader ->
                         if (httpHeader.value.contains("attachment") || httpHeader.name.contains("Content-ID")) value++
                     }
+=======
+                return if ((response.http.parts.size - 1) == expectedValue) {
+                    success()
+                } else {
+                    failure("Expected $expectedValue but found ${response.http.parts.size} attachment(s)")
+>>>>>>> Stashed changes
                 }
-                if (value == expectedValue) return success()
-                failure("Expected $expectedValue but found $value attachment(s)")
             }
-            value == expectedValue -> success()
+            expectedValue == 0 -> success()
             else -> failure("Doesn't have a attachment")
         }
     }
@@ -265,8 +267,8 @@ class XQueryValidator(private val xQuery: String, private val expectedValue: Exp
         val responseData = response.body?.dataAsString ?: return failure("There is no response data")
         val expectedValue = expectedValue.let {
             interpolateExpressions(expectedValue
-                    .let { ExpressionEvaluator(executionContext).evaluate(it) }
-                    ?: return failure("XQueryValidator is missing expected value or is empty"), executionContext)
+                .let { ExpressionEvaluator(executionContext).evaluate(it) }
+                ?: return failure("XQueryValidator is missing expected value or is empty"), executionContext)
         }
         val xQuery = xQuery.let { interpolateExpressions(it, executionContext) }
         val saxon = Processor(Configuration())
@@ -277,7 +279,7 @@ class XQueryValidator(private val xQuery: String, private val expectedValue: Exp
         val query = exec.load()
         query.contextItem = builder.build(src)
         val comparisonResult = compare(expectedValue, toDocument((query.evaluate()
-                ?: return failure(" There was a error")).toString()), executionContext.configuration.xml.namespaces)
+            ?: return failure(" There was a error")).toString()), executionContext.configuration.xml.namespaces)
         if (comparisonResult != null) {
             return failure("XQuery failure: $comparisonResult")
         }
@@ -293,16 +295,15 @@ enum class InequalityType {
 
 private fun compare(expected: String, actual: Node, namespaces: List<NamespaceDeclaration>): String? {
     return DiffBuilder.compare(fragmentToDocument(expected, namespaces))
-            .withTest(actual)
-            .ignoreComments()
-            .ignoreWhitespace()
-            .checkForSimilar()
-            .withNamespaceContext(namespaces.associateBy({ it.prefix }, { it.namespace }))
-            .withDifferenceEvaluator { comparison, outcome -> evaluateWildcards(comparison, outcome) }
-            .build()
-            .let { if (it.hasDifferences()) it.toString() else null }
+        .withTest(actual)
+        .ignoreComments()
+        .ignoreWhitespace()
+        .checkForSimilar()
+        .withNamespaceContext(namespaces.associateBy({ it.prefix }, { it.namespace }))
+        .withDifferenceEvaluator { comparison, outcome -> evaluateWildcards(comparison, outcome) }
+        .build()
+        .let { if (it.hasDifferences()) it.toString() else null }
 }
-
 
 private fun evaluateWildcards(comparison: Comparison, outcome: ComparisonResult): ComparisonResult {
     val expected = comparison.controlDetails.target?.nodeValue
@@ -320,7 +321,7 @@ private fun evaluateWildcards(comparison: Comparison, outcome: ComparisonResult)
 
 private fun Validator<*, *>.assertXpath(response: SoapStepResponse, xpath: String, executionContext: ExecutionContext, type: XPathType, expectedValue: String, regex: Boolean): ValidatorResult {
     val actualValue: EvaluateResult = response.document.evaluate(xpath, executionContext.configuration.xml.namespaces, type)
-            ?: return failure("XPath failure, no match found for XPath: $xpath")
+        ?: return failure("XPath failure, no match found for XPath: $xpath")
     try {
         when (actualValue) {
             is ErrorValue -> return failure("XPath failure: ${actualValue.value}")
@@ -332,8 +333,8 @@ private fun Validator<*, *>.assertXpath(response: SoapStepResponse, xpath: Strin
             }
             is NumberValue -> {
                 expectedValue.toDouble()
-                        .takeIf { actualValue.number == it }
-                        ?: return failure("XPath(Number) failure: \n XPath: $xpath\r\n Expected:\r\n ${expectedValue.toDoubleOrNull()}\r\n Actual:\r\n ${actualValue.number}")
+                    .takeIf { actualValue.number == it }
+                    ?: return failure("XPath(Number) failure: \n XPath: $xpath\r\n Expected:\r\n ${expectedValue.toDoubleOrNull()}\r\n Actual:\r\n ${actualValue.number}")
             }
             else -> {
                 if (regex) {
