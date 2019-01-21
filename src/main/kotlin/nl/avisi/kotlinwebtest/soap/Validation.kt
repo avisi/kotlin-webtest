@@ -212,8 +212,8 @@ class AttachmentsCountValidator(private val expectedValue: Int) : Validator<Soap
         return when {
             response.http is MultipartHttpResponse -> {
                 response.http.parts.forEach {
-                    it.headers.forEach {
-                        if (it.value.contains("attachment")) value++
+                    it.headers.forEach { httpHeader ->
+                        if (httpHeader.value.contains("attachment") || httpHeader.name.contains("Content-ID")) value++
                     }
                 }
                 if (value == expectedValue) return success()
