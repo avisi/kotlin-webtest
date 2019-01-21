@@ -208,17 +208,10 @@ class AttachmentsCountValidator(private val expectedValue: Int) : Validator<Soap
     override fun validate(executionContext: ExecutionContext, request: SoapStepRequest, response: SoapStepResponse): ValidatorResult {
         return when {
             response.http is MultipartHttpResponse -> {
-<<<<<<< Updated upstream
-                response.http.parts.forEach {
-                    it.headers.forEach { httpHeader ->
-                        if (httpHeader.value.contains("attachment") || httpHeader.name.contains("Content-ID")) value++
-                    }
-=======
                 return if ((response.http.parts.size - 1) == expectedValue) {
                     success()
                 } else {
                     failure("Expected $expectedValue but found ${response.http.parts.size} attachment(s)")
->>>>>>> Stashed changes
                 }
             }
             expectedValue == 0 -> success()
